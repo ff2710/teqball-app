@@ -85,6 +85,8 @@ function importDB(file) {
       showDbStatus('Datenbank erfolgreich importiert.');
       renderKnownPlayers();
       renderStats();
+      updateSpieltagLock();
+      updateHomeState();
     } catch { showDbStatus('Fehler: Ungültige oder beschädigte Datei.'); }
   };
   reader.readAsText(file);
@@ -106,12 +108,41 @@ function initCloudLinks() {
     const el = document.getElementById(id);
     if (el) { el.href = CLOUD_URL; el.classList.remove('hidden'); }
   });
+  const lockedLink = document.getElementById('locked-cloud-link');
+  if (lockedLink) lockedLink.href = CLOUD_URL;
 }
 
 function showDbStatus(msg) {
   const el = document.getElementById('db-status');
   el.textContent = msg;
   setTimeout(() => { el.textContent = ''; }, 3500);
+}
+
+// ============================================================
+// DB LOCK / HOME STATE
+// ============================================================
+
+function isDbLoaded() {
+  return localStorage.getItem('teqball_import') !== null;
+}
+
+function hasActiveSession() {
+  return currentPlayers.length > 0 || currentTeams.length > 0 ||
+         currentRounds.length > 0 || scheduleActive;
+}
+
+function updateSpieltagLock() {
+  const locked = !isDbLoaded() && !hasActiveSession();
+  document.getElementById('spieltag-locked-overlay').classList.toggle('hidden', !locked);
+}
+
+function updateHomeState() {
+  const loaded   = isDbLoaded();
+  const startBtn = document.getElementById('start-game-btn');
+  const hint     = document.getElementById('no-db-hint');
+  startBtn.disabled    = !loaded;
+  startBtn.style.opacity = loaded ? '' : '0.4';
+  hint.classList.toggle('hidden', loaded);
 }
 
 // ============================================================
@@ -127,7 +158,8 @@ function switchTab(tabId) {
   );
   if (tabId === 'statistiken') renderStats();
   if (tabId === 'historie')    renderHistorie();
-  if (tabId === 'home')        updateHomeBanner();
+  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); }
+  if (tabId === 'spieltag')    updateSpieltagLock();
 }
 
 // ============================================================
@@ -677,9 +709,9 @@ function startNewRoundNewTeams() {
 function endSession() {
   if (scheduleActive) {
     const msg = currentRounds.length > 0
-      ? `Spieltag beenden? Die aktuelle Runde wird verworfen. ${currentRounds.length} abgeschlossene Runde(n) werden gespeichert.`
-      : 'Spieltag beenden? Die aktuelle Runde wurde nicht abgeschlossen und wird verworfen.';
-    showConfirm(msg, performEndSession, 'Ja, beenden');
+      ? `Spieltag abbrechen? Die aktuelle Runde wird verworfen. ${currentRounds.length} abgeschlossene Runde(n) werden gespeichert.`
+      : 'Spieltag abbrechen? Die aktuelle Runde wurde nicht abgeschlossen und wird verworfen.';
+    showConfirm(msg, performEndSession, 'Ja, abbrechen');
     return;
   }
   performEndSession();
@@ -1061,9 +1093,6 @@ document.getElementById('btn-new-round-new').addEventListener('click', () => {
 });
 document.getElementById('btn-end-session').addEventListener('click', endSession);
 document.getElementById('btn-end-session-indicator').addEventListener('click', endSession);
-document.getElementById('post-round-close').addEventListener('click', () =>
-  document.getElementById('post-round-overlay').classList.add('hidden')
-);
 
 // Session saved modal
 document.getElementById('session-saved-export').addEventListener('click', exportDB);
@@ -1087,6 +1116,12 @@ document.getElementById('import-input-quick').addEventListener('change', e => {
   if (e.target.files[0]) { importDB(e.target.files[0]); e.target.value = ''; }
 });
 
+// Spieltag locked overlay
+document.getElementById('locked-goto-home').addEventListener('click', () => {
+  document.getElementById('spieltag-locked-overlay').classList.add('hidden');
+  switchTab('home');
+});
+
 // ============================================================
 // INIT
 // ============================================================
@@ -1096,3 +1131,4 @@ renderStats();
 renderImportStatus();
 initCloudLinks();
 updateHomeBanner();
+updateHomeState();

@@ -1001,3 +1001,49 @@ input[type="number"]:focus {
   flex: 1;
   min-width: 140px;
 }
+
+/* ── Spieltag locked overlay ── */
+.spieltag-locked-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.locked-icon-wrap {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.spieltag-locked-modal h2 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  margin-bottom: 0;
+}
+
+.locked-text {
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.locked-cloud-link {
+  color: #0891b2;
+  font-weight: 600;
+  text-decoration: none;
+}
+.locked-cloud-link:hover { color: #0e7490; }
+
+/* ── No-DB home hint ── */
+.no-db-hint {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: -4px;
+  line-height: 1.4;
+}

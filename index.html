@@ -52,7 +52,6 @@
       <!-- ── POST-ROUND MODAL ── -->
       <div id="post-round-overlay" class="help-overlay hidden">
         <div class="help-modal post-round-modal">
-          <button id="post-round-close" class="help-close" aria-label="Schließen">×</button>
           <div id="post-round-winner" class="post-round-winner"></div>
           <div class="post-round-standings-wrap">
             <table class="standings-table post-round-table">
@@ -103,6 +102,21 @@
         </div>
       </div>
 
+      <!-- ── SPIELTAG LOCKED OVERLAY ── -->
+      <div id="spieltag-locked-overlay" class="help-overlay hidden">
+        <div class="help-modal spieltag-locked-modal">
+          <div class="locked-icon-wrap">🔒</div>
+          <h2 class="locked-title">Datenbank erforderlich</h2>
+          <p class="locked-text">
+            Bitte lade zuerst die aktuelle Datenbank herunter. Die neueste
+            <code>.json</code>-Datei findest du in der
+            <a id="locked-cloud-link" href="#" target="_blank" rel="noopener" class="locked-cloud-link">Cloud ↗</a>.
+            Herunterladen und dann im <strong>Home-Tab</strong> auf <strong>„Importieren"</strong> drücken.
+          </p>
+          <button id="locked-goto-home" class="btn-full">Zum Home-Tab</button>
+        </div>
+      </div>
+
       <!-- ── TAB: HOME ── -->
       <div id="tab-home" class="tab-content active">
         <div class="container">
@@ -130,6 +144,7 @@
               <button id="btn-resume-session" class="btn-sm">Weiterspielen →</button>
             </div>
             <button id="start-game-btn" class="btn-full btn-start">Spieltag starten</button>
+            <p id="no-db-hint" class="no-db-hint hidden">Bitte zuerst eine Datenbank importieren (siehe oben).</p>
           </section>
 
         </div>
