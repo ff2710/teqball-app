@@ -1056,3 +1056,10 @@ input[type="number"]:focus {
   margin-top: -4px;
   line-height: 1.4;
 }
+
+
+
+.dropbox-embed {
+  border-radius: 14px;
+  overflow: hidden;
+}
