@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Teqball</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+
+      <header class="app-header">
+        <h1>Teqball</h1>
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="spieltag">Spieltag</button>
+          <button class="tab-btn" data-tab="statistiken">Statistiken</button>
+        </nav>
+      </header>
+
+      <!-- ── TAB: SPIELTAG ── -->
+      <div id="tab-spieltag" class="tab-content active">
+        <div class="container">
+
+          <section class="card" id="section-players">
+            <h2>Spieler</h2>
+            <div class="input-row">
+              <input type="text" id="player-input" placeholder="Spielername eingeben" autocomplete="off" />
+              <button id="add-btn">+</button>
+            </div>
+            <p id="error-msg" class="error hidden"></p>
+            <div id="known-players-row" class="known-players hidden"></div>
+            <ul id="player-list"></ul>
+          </section>
+
+          <section class="card" id="section-teams">
+            <h2>Teams</h2>
+            <button id="generate-teams-btn" class="btn-full">Teams generieren</button>
+            <div id="teams-container"></div>
+          </section>
+
+          <section class="card" id="section-schedule">
+            <h2>Spielplan &amp; Ergebnisse</h2>
+            <button id="generate-schedule-btn" class="btn-full">Spielplan generieren</button>
+            <div id="schedule-container"></div>
+          </section>
+
+          <section class="card hidden" id="section-table">
+            <h2>Livetabelle</h2>
+            <div id="standings-container"></div>
+          </section>
+
+          <div id="save-area" class="hidden">
+            <p id="save-msg" class="message hidden"></p>
+            <button id="save-session-btn" class="btn-full btn-save">Spieltag speichern</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── TAB: STATISTIKEN ── -->
+      <div id="tab-statistiken" class="tab-content">
+        <div class="container">
+
+          <section class="card">
+            <h2>Spielerstatistiken</h2>
+            <div id="stats-container">
+              <p class="message">Noch keine Daten gespeichert.</p>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Datenbank</h2>
+            <div class="db-actions">
+              <button id="export-btn">Exportieren (.json)</button>
+              <label class="btn btn-secondary" for="import-input">Importieren (.json)</label>
+              <input type="file" id="import-input" accept=".json" class="hidden" />
+            </div>
+            <p id="db-status" class="message"></p>
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
