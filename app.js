@@ -17,10 +17,12 @@ const TEAM_COLORS = [
 // STATE
 // ============================================================
 
-let db = loadDB();          // { players: [], sessions: [] }
-let currentPlayers = [];    // players chosen for this game day
-let currentTeams = [];      // array of player-name arrays
-let currentMatches = [];    // { teamA, teamB, helper, scoreA, scoreB }
+let db = loadDB();
+let currentPlayers = [];
+let currentTeams = [];
+let currentMatches = [];
+let currentRounds = [];     // completed rounds this session: [{ teams, matches }]
+let currentRoundNumber = 1; // 1-based, shown in schedule header
 
 // ============================================================
 // DATABASE
@@ -30,7 +32,6 @@ function loadDB() {
   try {
     const raw = localStorage.getItem('teqball_db');
     if (raw) return JSON.parse(raw);
-    // Migrate old player list if it exists
     const oldPlayers = JSON.parse(localStorage.getItem('players') || '[]');
     return { players: oldPlayers, sessions: [] };
   } catch {
@@ -91,7 +92,7 @@ function switchTab(tabId) {
 }
 
 // ============================================================
-// PLAYERS
+// PLAYERS — main section
 // ============================================================
 
 function renderKnownPlayers() {
@@ -99,10 +100,7 @@ function renderKnownPlayers() {
   const known = db.players.filter(
     p => !currentPlayers.some(c => c.toLowerCase() === p.toLowerCase())
   );
-  if (known.length === 0) {
-    row.classList.add('hidden');
-    return;
-  }
+  if (known.length === 0) { row.classList.add('hidden'); return; }
   row.classList.remove('hidden');
   row.innerHTML = '<span class="known-label">Bekannte:</span>';
   known.forEach(name => {
@@ -123,10 +121,8 @@ function renderPlayers() {
   list.innerHTML = '';
   currentPlayers.forEach((name, index) => {
     const li = document.createElement('li');
-
     const nameSpan = document.createElement('span');
     nameSpan.textContent = name;
-
     const removeBtn = document.createElement('button');
     removeBtn.textContent = '×';
     removeBtn.className = 'btn-remove';
@@ -135,7 +131,6 @@ function renderPlayers() {
       renderPlayers();
       renderKnownPlayers();
     });
-
     li.appendChild(nameSpan);
     li.appendChild(removeBtn);
     list.appendChild(li);
@@ -196,6 +191,7 @@ function generateTeams() {
   document.getElementById('schedule-container').innerHTML = '';
   document.getElementById('section-table').classList.add('hidden');
   document.getElementById('save-area').classList.add('hidden');
+  document.getElementById('btn-new-round').classList.add('hidden');
   renderTeams(currentTeams);
 }
 
@@ -207,14 +203,11 @@ function renderTeams(teams) {
     const card = document.createElement('div');
     card.className = 'team-card';
     card.style.borderLeftColor = color;
-
     const title = document.createElement('h3');
     title.textContent = `Team ${i + 1}`;
     title.style.color = color;
-
     const members = document.createElement('p');
     members.textContent = team.length === 1 ? `${team[0]} (Einzel)` : team.join(' & ');
-
     card.appendChild(title);
     card.appendChild(members);
     container.appendChild(card);
@@ -242,6 +235,7 @@ function generateSchedule(teams) {
   container.innerHTML = '';
   document.getElementById('section-table').classList.add('hidden');
   document.getElementById('save-area').classList.add('hidden');
+  document.getElementById('btn-new-round').classList.add('hidden');
 
   if (teams.length < 2) {
     container.innerHTML =
@@ -296,9 +290,15 @@ function generateSchedule(teams) {
   });
 
   renderSchedule(teams);
+  updateRoundLabel();
   document.getElementById('section-table').classList.remove('hidden');
   document.getElementById('save-area').classList.remove('hidden');
+  document.getElementById('btn-new-round').classList.remove('hidden');
   updateStandings();
+}
+
+function updateRoundLabel() {
+  document.getElementById('round-label').textContent = `Runde ${currentRoundNumber}`;
 }
 
 function renderSchedule(teams) {
@@ -310,7 +310,6 @@ function renderSchedule(teams) {
     const div = document.createElement('div');
     div.className = 'match';
 
-    // Team badges row
     const header = document.createElement('div');
     header.className = 'match-header';
 
@@ -330,7 +329,6 @@ function renderSchedule(teams) {
     header.appendChild(vs);
     header.appendChild(teamBadge(match.teamB, teams, helperB));
 
-    // Score inputs row
     const scoreRow = document.createElement('div');
     scoreRow.className = 'score-row';
 
@@ -338,11 +336,9 @@ function renderSchedule(teams) {
       currentMatches[i].scoreA = val;
       updateStandings();
     });
-
     const colon = document.createElement('span');
     colon.className = 'score-colon';
     colon.textContent = ':';
-
     const inputB = createScoreInput(match.scoreB, (val) => {
       currentMatches[i].scoreB = val;
       updateStandings();
@@ -451,51 +447,222 @@ function renderStandings(standings) {
 }
 
 // ============================================================
+// ROUND MANAGEMENT
+// ============================================================
+
+function finalizeMatch(m) {
+  const sA = parseInt(m.scoreA);
+  const sB = parseInt(m.scoreB);
+  return {
+    teamA: m.teamA, teamB: m.teamB, helper: m.helper,
+    scoreA: isNaN(sA) ? null : sA,
+    scoreB: isNaN(sB) ? null : sB,
+  };
+}
+
+function hasActiveRoundResult() {
+  return currentMatches.some(
+    m => m.scoreA !== '' && m.scoreB !== '' &&
+         !isNaN(parseInt(m.scoreA)) && !isNaN(parseInt(m.scoreB))
+  );
+}
+
+function playersMatchCurrentTeams() {
+  if (currentTeams.length === 0) return false;
+  const teamPlayers = currentTeams.flat();
+  if (teamPlayers.length !== currentPlayers.length) return false;
+  return currentPlayers.every(p =>
+    teamPlayers.some(t => t.toLowerCase() === p.toLowerCase())
+  );
+}
+
+function updateKeepTeamsBtn() {
+  const btn = document.getElementById('btn-keep-teams');
+  const canKeep = playersMatchCurrentTeams();
+  btn.disabled = !canKeep;
+  btn.title = canKeep ? '' : 'Spielerzusammensetzung hat sich geändert';
+}
+
+function startNewRound() {
+  if (!hasActiveRoundResult()) {
+    showSaveMsg('Bitte mindestens ein Ergebnis eintragen.');
+    return;
+  }
+
+  // Lock current round
+  currentRounds.push({
+    teams: currentTeams.map(t => [...t]),
+    matches: currentMatches.map(finalizeMatch),
+  });
+  currentRoundNumber++;
+  currentMatches = [];
+
+  // Switch UI
+  document.getElementById('save-area').classList.add('hidden');
+  document.getElementById('btn-new-round').classList.add('hidden');
+  document.getElementById('new-round-card').classList.remove('hidden');
+  document.getElementById('new-round-number').textContent = `Runde ${currentRoundNumber}`;
+
+  renderNewRoundPlayers();
+  renderNewRoundKnownPlayers();
+  updateKeepTeamsBtn();
+
+  document.getElementById('new-round-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function confirmNewRound(keepTeams) {
+  document.getElementById('new-round-card').classList.add('hidden');
+
+  if (keepTeams) {
+    renderTeams(currentTeams);
+    generateSchedule(currentTeams);
+  } else {
+    generateTeams();
+    if (currentTeams.length >= 2) generateSchedule(currentTeams);
+  }
+
+  document.getElementById('section-schedule').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ============================================================
+// NEW-ROUND PLAYER MANAGEMENT
+// ============================================================
+
+function renderNewRoundPlayers() {
+  const list = document.getElementById('new-round-player-list');
+  list.innerHTML = '';
+  currentPlayers.forEach((name, index) => {
+    const li = document.createElement('li');
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = name;
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '×';
+    removeBtn.className = 'btn-remove';
+    removeBtn.addEventListener('click', () => {
+      currentPlayers.splice(index, 1);
+      renderNewRoundPlayers();
+      renderNewRoundKnownPlayers();
+      updateKeepTeamsBtn();
+    });
+    li.appendChild(nameSpan);
+    li.appendChild(removeBtn);
+    list.appendChild(li);
+  });
+}
+
+function renderNewRoundKnownPlayers() {
+  const row = document.getElementById('new-round-known-players');
+  const known = db.players.filter(
+    p => !currentPlayers.some(c => c.toLowerCase() === p.toLowerCase())
+  );
+  if (known.length === 0) { row.classList.add('hidden'); return; }
+  row.classList.remove('hidden');
+  row.innerHTML = '<span class="known-label">Bekannte:</span>';
+  known.forEach(name => {
+    const chip = document.createElement('button');
+    chip.className = 'player-chip';
+    chip.textContent = name;
+    chip.addEventListener('click', () => {
+      currentPlayers.push(name);
+      renderNewRoundPlayers();
+      renderNewRoundKnownPlayers();
+      updateKeepTeamsBtn();
+    });
+    row.appendChild(chip);
+  });
+}
+
+function addNewRoundPlayer() {
+  const input = document.getElementById('new-round-player-input');
+  const name = input.value.trim();
+  if (!name) return;
+  if (currentPlayers.some(p => p.toLowerCase() === name.toLowerCase())) {
+    const errEl = document.getElementById('new-round-error');
+    errEl.textContent = `"${name}" ist bereits in der Liste.`;
+    errEl.classList.remove('hidden');
+    setTimeout(() => errEl.classList.add('hidden'), 2500);
+    return;
+  }
+  currentPlayers.push(name);
+  if (!db.players.some(p => p.toLowerCase() === name.toLowerCase())) {
+    db.players.push(name);
+    saveDB();
+  }
+  input.value = '';
+  renderNewRoundPlayers();
+  renderNewRoundKnownPlayers();
+  updateKeepTeamsBtn();
+}
+
+// ============================================================
 // SAVE SESSION
 // ============================================================
 
+function showSaveMsg(msg) {
+  const el = document.getElementById('save-msg');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 2500);
+}
+
 function saveSession() {
-  const saveMsg = document.getElementById('save-msg');
-  const hasAnyResult = currentMatches.some(
-    m => m.scoreA !== '' && m.scoreB !== '' && !isNaN(parseInt(m.scoreA)) && !isNaN(parseInt(m.scoreB))
-  );
-  if (!hasAnyResult) {
-    saveMsg.textContent = 'Bitte mindestens ein Ergebnis eintragen.';
-    saveMsg.classList.remove('hidden');
-    setTimeout(() => saveMsg.classList.add('hidden'), 2500);
+  const activeHasResult = hasActiveRoundResult();
+
+  if (currentRounds.length === 0 && !activeHasResult) {
+    showSaveMsg('Bitte mindestens ein Ergebnis eintragen.');
     return;
+  }
+
+  const rounds = [...currentRounds];
+  if (activeHasResult) {
+    rounds.push({
+      teams: currentTeams.map(t => [...t]),
+      matches: currentMatches.map(finalizeMatch),
+    });
+  } else {
+    showSaveMsg('Leere Runde wird nicht gespeichert.');
   }
 
   const session = {
     id: Date.now(),
     date: new Date().toISOString().slice(0, 10),
-    teams: currentTeams,
-    matches: currentMatches.map(m => {
-      const sA = parseInt(m.scoreA);
-      const sB = parseInt(m.scoreB);
-      return {
-        teamA: m.teamA, teamB: m.teamB, helper: m.helper,
-        scoreA: isNaN(sA) ? null : sA,
-        scoreB: isNaN(sB) ? null : sB,
-      };
-    }),
+    rounds,
   };
 
   db.sessions.push(session);
   saveDB();
 
+  // Full reset
+  currentRounds = [];
+  currentRoundNumber = 1;
+  currentPlayers = [];
+  currentTeams = [];
+  currentMatches = [];
+
+  document.getElementById('section-table').classList.add('hidden');
+  document.getElementById('save-area').classList.add('hidden');
+  document.getElementById('new-round-card').classList.add('hidden');
+  document.getElementById('btn-new-round').classList.add('hidden');
+  document.getElementById('schedule-container').innerHTML = '';
+  document.getElementById('teams-container').innerHTML = '';
+  document.getElementById('round-label').textContent = '';
+  renderKnownPlayers();
+  renderPlayers();
+
   const btn = document.getElementById('save-session-btn');
   btn.textContent = '✓ Gespeichert!';
   btn.disabled = true;
-  setTimeout(() => {
-    btn.textContent = 'Spieltag speichern';
-    btn.disabled = false;
-  }, 2500);
+  setTimeout(() => { btn.textContent = 'Spieltag speichern'; btn.disabled = false; }, 2500);
 }
 
 // ============================================================
 // STATISTICS
 // ============================================================
+
+function normalizeSessionRounds(session) {
+  // Backward compat: old sessions have top-level teams + matches
+  return session.rounds ?? [{ teams: session.teams, matches: session.matches }];
+}
 
 function computePlayerStats(sessions) {
   const stats = {};
@@ -509,35 +676,37 @@ function computePlayerStats(sessions) {
   }
 
   sessions.forEach(session => {
-    session.matches.forEach(match => {
-      const sA = parseInt(match.scoreA);
-      const sB = parseInt(match.scoreB);
-      if (isNaN(sA) || isNaN(sB)) return;
+    normalizeSessionRounds(session).forEach(round => {
+      round.matches.forEach(match => {
+        const sA = parseInt(match.scoreA);
+        const sB = parseInt(match.scoreB);
+        if (isNaN(sA) || isNaN(sB)) return;
 
-      const playersA = [...session.teams[match.teamA]];
-      const playersB = [...session.teams[match.teamB]];
-      if (match.helper) {
-        if (playersA.length === 1) playersA.push(match.helper);
-        else if (playersB.length === 1) playersB.push(match.helper);
-      }
+        const playersA = [...round.teams[match.teamA]];
+        const playersB = [...round.teams[match.teamB]];
+        if (match.helper) {
+          if (playersA.length === 1) playersA.push(match.helper);
+          else if (playersB.length === 1) playersB.push(match.helper);
+        }
 
-      const aWon = sA > sB;
+        const aWon = sA > sB;
 
-      playersA.forEach(name => {
-        const s = get(name);
-        s.sessionIds.add(session.id);
-        s.matches++;
-        s.pointsFor += sA;
-        s.pointsAgainst += sB;
-        if (aWon) s.wins++; else s.losses++;
-      });
-      playersB.forEach(name => {
-        const s = get(name);
-        s.sessionIds.add(session.id);
-        s.matches++;
-        s.pointsFor += sB;
-        s.pointsAgainst += sA;
-        if (!aWon) s.wins++; else s.losses++;
+        playersA.forEach(name => {
+          const s = get(name);
+          s.sessionIds.add(session.id);
+          s.matches++;
+          s.pointsFor += sA;
+          s.pointsAgainst += sB;
+          if (aWon) s.wins++; else s.losses++;
+        });
+        playersB.forEach(name => {
+          const s = get(name);
+          s.sessionIds.add(session.id);
+          s.matches++;
+          s.pointsFor += sB;
+          s.pointsAgainst += sA;
+          if (!aWon) s.wins++; else s.losses++;
+        });
       });
     });
   });
@@ -608,6 +777,24 @@ document.getElementById('generate-schedule-btn').addEventListener('click', () =>
   generateSchedule(currentTeams)
 );
 document.getElementById('save-session-btn').addEventListener('click', saveSession);
+document.getElementById('btn-new-round').addEventListener('click', startNewRound);
+document.getElementById('btn-keep-teams').addEventListener('click', () => confirmNewRound(true));
+document.getElementById('btn-reshuffle-teams').addEventListener('click', () => confirmNewRound(false));
+document.getElementById('new-round-add-btn').addEventListener('click', addNewRoundPlayer);
+document.getElementById('new-round-player-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addNewRoundPlayer();
+});
+document.getElementById('help-btn').addEventListener('click', () =>
+  document.getElementById('help-overlay').classList.remove('hidden')
+);
+document.getElementById('help-close').addEventListener('click', () =>
+  document.getElementById('help-overlay').classList.add('hidden')
+);
+document.getElementById('help-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget)
+    document.getElementById('help-overlay').classList.add('hidden');
+});
+
 document.getElementById('export-btn').addEventListener('click', exportDB);
 document.getElementById('import-input').addEventListener('change', e => {
   if (e.target.files[0]) importDB(e.target.files[0]);

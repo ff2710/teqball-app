@@ -10,12 +10,29 @@
     <div class="app">
 
       <header class="app-header">
-        <h1>Teqball</h1>
+        <div class="header-top">
+          <h1>Teqball</h1>
+          <button id="help-btn" class="btn-help" aria-label="Hilfe">?</button>
+        </div>
         <nav class="tabs">
           <button class="tab-btn active" data-tab="spieltag">Spieltag</button>
           <button class="tab-btn" data-tab="statistiken">Statistiken</button>
         </nav>
       </header>
+
+      <div id="help-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="help-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>Kurzanleitung</h2>
+          <ul>
+            <li><strong>Vor dem Spieltag:</strong> Im Tab „Statistiken" zuerst die aktuellste <code>.json</code>-Datei importieren, damit alle bisherigen Daten vorhanden sind.</li>
+            <li><strong>Spieler hinzufügen:</strong> Wer schon mal gespielt hat, erscheint als Chip — diesen antippen statt den Namen neu einzutippen! Nur so werden die Langzeitstatistiken korrekt zugeordnet.</li>
+            <li><strong>Neue Runde:</strong> Nach einer vollständigen Runde kann mit „Neue Runde starten" eine weitere gespielt werden. Alle Runden werden am Ende gemeinsam gespeichert.</li>
+            <li><strong>Browser-Cache:</strong> Während des Spieltags den Browser-Cache nicht löschen — sonst gehen alle ungespeicherten Ergebnisse verloren.</li>
+            <li><strong>Nach dem Spieltag:</strong> Auf „Spieltag speichern" drücken, dann im Tab „Statistiken" exportieren und die <code>.json</code>-Datei in die Gruppe schicken, damit alle den gleichen Stand haben.</li>
+          </ul>
+        </div>
+      </div>
 
       <!-- ── TAB: SPIELTAG ── -->
       <div id="tab-spieltag" class="tab-content active">
@@ -39,9 +56,24 @@
           </section>
 
           <section class="card" id="section-schedule">
-            <h2>Spielplan &amp; Ergebnisse</h2>
+            <h2>Spielplan &amp; Ergebnisse <span id="round-label" class="round-label"></span></h2>
             <button id="generate-schedule-btn" class="btn-full">Spielplan generieren</button>
             <div id="schedule-container"></div>
+          </section>
+
+          <section id="new-round-card" class="card hidden">
+            <h2>Neue Runde — <span id="new-round-number"></span></h2>
+            <div id="new-round-known-players" class="known-players hidden"></div>
+            <ul id="new-round-player-list"></ul>
+            <div class="input-row">
+              <input type="text" id="new-round-player-input" placeholder="Spieler hinzufügen" autocomplete="off" />
+              <button id="new-round-add-btn">+</button>
+            </div>
+            <p id="new-round-error" class="error hidden"></p>
+            <div class="round-actions">
+              <button id="btn-keep-teams">Gleiche Teams</button>
+              <button id="btn-reshuffle-teams" class="btn-secondary-action">Teams neu auslosen</button>
+            </div>
           </section>
 
           <section class="card hidden" id="section-table">
@@ -51,6 +83,7 @@
 
           <div id="save-area" class="hidden">
             <p id="save-msg" class="message hidden"></p>
+            <button id="btn-new-round" class="btn-full btn-new-round hidden">Neue Runde starten</button>
             <button id="save-session-btn" class="btn-full btn-save">Spieltag speichern</button>
           </div>
 
