@@ -158,7 +158,7 @@ function switchTab(tabId) {
   );
   if (tabId === 'statistiken') renderStats();
   if (tabId === 'historie')    renderHistorie();
-  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); }
+  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); renderImportStatus(); }
   if (tabId === 'spieltag')    updateSpieltagLock();
 }
 
@@ -709,9 +709,9 @@ function startNewRoundNewTeams() {
 function endSession() {
   if (scheduleActive) {
     const msg = currentRounds.length > 0
-      ? `Spieltag abbrechen? Die aktuelle Runde wird verworfen. ${currentRounds.length} abgeschlossene Runde(n) werden gespeichert.`
-      : 'Spieltag abbrechen? Die aktuelle Runde wurde nicht abgeschlossen und wird verworfen.';
-    showConfirm(msg, performEndSession, 'Ja, abbrechen');
+      ? `Spieltag beenden? Die aktuelle Runde wird verworfen. ${currentRounds.length} abgeschlossene Runde(n) werden gespeichert.`
+      : 'Spieltag beenden? Die aktuelle Runde wurde nicht abgeschlossen und wird verworfen.';
+    showConfirm(msg, performEndSession, 'Ja, verwerfen');
     return;
   }
   performEndSession();
@@ -723,6 +723,7 @@ function performEndSession() {
   if (savedRounds > 0) {
     db.sessions.push({ id: Date.now(), date: new Date().toISOString().slice(0, 10), rounds: currentRounds });
     saveDB();
+    localStorage.removeItem('teqball_import');
   }
   resetGameState();
   switchTab('home');
@@ -1109,9 +1110,6 @@ document.getElementById('session-saved-overlay').addEventListener('click', e => 
 
 // Database
 document.getElementById('export-btn').addEventListener('click', exportDB);
-document.getElementById('import-input').addEventListener('change', e => {
-  if (e.target.files[0]) { importDB(e.target.files[0]); e.target.value = ''; }
-});
 document.getElementById('import-input-quick').addEventListener('change', e => {
   if (e.target.files[0]) { importDB(e.target.files[0]); e.target.value = ''; }
 });

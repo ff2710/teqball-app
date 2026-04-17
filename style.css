@@ -872,6 +872,15 @@ input[type="number"]:focus {
   margin-bottom: 4px;
 }
 
+.session-saved-hint {
+  font-size: 0.8rem;
+  color: #d97706;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4;
+  margin-top: -2px;
+}
+
 .post-round-actions {
   display: flex;
   gap: 10px;

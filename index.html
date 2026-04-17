@@ -74,6 +74,7 @@
           <button id="session-saved-close" class="help-close" aria-label="Schließen">×</button>
           <p class="session-saved-title">✓ Spieltag gespeichert!</p>
           <p id="session-saved-rounds" class="confirm-msg"></p>
+          <p class="session-saved-hint">Wichtig: Datei herunterladen und in der Cloud hochladen, damit alle den aktuellen Stand haben.</p>
           <div class="confirm-actions">
             <button id="session-saved-export" class="btn-save">Exportieren (.json)</button>
             <button id="session-saved-dismiss" class="btn-secondary">Schließen</button>
@@ -216,8 +217,6 @@
             <h2>Datenbank</h2>
             <div class="db-actions">
               <button id="export-btn">Exportieren (.json)</button>
-              <label class="btn btn-secondary" for="import-input">Importieren (.json)</label>
-              <input type="file" id="import-input" accept=".json" class="hidden" />
             </div>
             <a id="cloud-link-stats" href="#" target="_blank" rel="noopener" class="db-cloud-link hidden">Cloud-Ordner öffnen ↗</a>
             <p id="db-status" class="message"></p>
