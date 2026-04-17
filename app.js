@@ -1121,68 +1121,6 @@ document.getElementById('locked-goto-home').addEventListener('click', () => {
 });
 
 
-// === Dropbox Cloud Logic ===
-const DBX_TOKEN = 'sl.u.AGbtf-Z4U2fFznWmngrYmqZ9r8Pbcyusd2mja-VyrTp37uNxLb1Kix807V4dezLrG8VcJO6smJnxZMLTAVzyru9pMKtT2-g7brLxMbIQWFFN_fOJjIp1f-oogMmLxhudhBgg42pqiejoZLURhJmY23ohfazbZiXwovGAFFnqTj8QSRwg4eFZIlZRMh0GxGF2KNQWRSNKszaI6kGGM7cO5VXLQc-xOiE8zEEdm8bu2InN1SIkyrpRtzKazJqFPX29ukBTNiR3y__Lzc8YoumfbIBE8ka6zOV94t4uymJGwfASRLipIRxEwz2nFTm5cNB4eaSl-QqLJsdIgW-4odbibeE4ZMXrqZjHDFAd6Y3b9i5DR1VFwvjgIemQ0IfRtWYADUMGHUwRAuO_pESuJu1vcM8cv0dckko5Mkhg2__AYm6TCq4Hnq-JNd_Tl2dxxfG3qz7MUEpHUgb4oXmtQV92UStUCR8ZSMMD6KDTJMGg57LK67OD7Ahv76ZhOKKMezKRVJkBK5zksetHIc7EIAs3-V0GK5_l5a8JdQrHmKip35TtFCuEqJDQX6iRXzENEYObMsr9oc0ArfTbtiDO2jw0l_Sa9cZcaoaTmUfMr9fIX4d9rZDxnWjo23BH2V3Ldgv7gy0SYJg9i1iEBpdR822RIAudOmL5xHDa-yKnPxrWRogRJxgggDdEUlA08P7jmF856Hau3LBFW4-9FifJuq8aSz95Hc_JuX-4Td20iPsBCy6K6umAA5XUERHTh6SQl9v-L1_-e4-EeasRCuXSXh1YzbQcNQu-L6fyuyhotxtCOw-YZA8PYNnstDf0h50phW1RPfvMft7k6SaLF5OX4lWNOhAVARkmz_2Nft8L4EQKflH3Vew_dZXmIjKBzXrhuh8nRSbOL4X_H5bD4-S4AZtNuleEuW0GjogxonoxgSiQpG0gtCfIC01uETlOtFj0mfjnLeNZZ5QT4oSjgNM-HYVM-Od5eFVttEZ4waJbjBRdqRIlLlMKxqgLIVEBFePiVKINBt5_56NjPO2CI2zqedU5XbOvqjM1ZH31OCSWTMbDvli8npDYU99ty2G2R9ErhARtrAgqHcMzoHR4bXcCKINLB5CJ4otbXH0fwfKnj_eNfcFWHZvboP7997C1Ya8nRNGFWuhrezexMcNcDQGkVULn4_FHdinvJBAkPbNppkNCLWBFvOxHpfaLoTzzyNlCpTgVt-SBDgVwVHNCQt_wnbXhPg-eMpz9-p5FBykIHLNAIoAZJRl37JO2XkS266j13wMlRUQoJuA1yEucT_VdknEMthUh'; // Hier Token einfügen!
-const CLOUD_FOLDER_PATH = ''; // Leer lassen, wenn App-Folder genutzt wird
-
-async function fetchLatestCloudFile() {
-  const container = document.getElementById('cloud-file-container');
-  
-  try {
-    const response = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${DBX_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ path: CLOUD_FOLDER_PATH })
-    });
-
-    const data = await response.json();
-    
-    // Filtere nach .json und sortiere nach Datum (neueste zuerst)
-    const files = data.entries
-      .filter(item => item['.tag'] === 'file' && item.name.endsWith('.json'))
-      .sort((a, b) => new Date(b.server_modified) - new Date(a.server_modified));
-
-    if (files.length > 0) {
-      const latest = files[0];
-      const dateStr = new Date(latest.server_modified).toLocaleString('de-DE');
-      
-      // Hole einen direkten Download-Link
-      const linkRes = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${DBX_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ path: latest.path_lower })
-      });
-      const linkData = await linkRes.json();
-
-      container.innerHTML = `
-        <div class="cloud-item">
-          <div class="cloud-file-info">
-            <span class="cloud-file-name">📄 ${latest.name}</span>
-            <span class="cloud-file-date">Stand: ${dateStr}</span>
-          </div>
-          <a href="${linkData.link}" class="btn-download-cloud">Datei herunterladen</a>
-        </div>
-      `;
-    } else {
-      container.innerHTML = '<p class="message">Keine .json Dateien gefunden.</p>';
-    }
-  } catch (error) {
-    console.error('Dropbox Error:', error);
-    container.innerHTML = '<p class="message" style="color:#ef4444">Fehler beim Laden der Cloud.</p>';
-  }
-}
-
-// Event Listener für den Refresh-Button
-document.getElementById('refresh-cloud').addEventListener('click', fetchLatestCloudFile);
-
-// Initial beim Start laden
-fetchLatestCloudFile();
 
 // ============================================================
 // INIT
