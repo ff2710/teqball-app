@@ -592,10 +592,10 @@ function endRound() {
 
   document.getElementById('section-table').classList.add('hidden');
   document.getElementById('end-round-area').classList.add('hidden');
-  document.getElementById('post-round-overlay').classList.remove('hidden');
   updateRoundIndicator();
   updateHomeBanner();
-  document.getElementById('post-round-overlay').scrollIntoView({ behavior: 'smooth' });
+  populatePostRoundModal();
+  document.getElementById('post-round-overlay').classList.remove('hidden');
 }
 
 function showEndRoundMsg(msg) {
@@ -603,6 +603,42 @@ function showEndRoundMsg(msg) {
   el.textContent = msg;
   el.classList.remove('hidden');
   setTimeout(() => el.classList.add('hidden'), 2500);
+}
+
+function populatePostRoundModal() {
+  const round  = currentRounds[currentRounds.length - 1];
+  const winner = getRoundWinner(round);
+
+  const winnerEl = document.getElementById('post-round-winner');
+  if (!winner) {
+    winnerEl.innerHTML = '<span class="post-round-congrats">Unentschieden! 🤝</span>';
+  } else {
+    const color = TEAM_COLORS[winner.teamIndex % TEAM_COLORS.length];
+    winnerEl.innerHTML = `
+      <span class="post-round-congrats">🏆 Glückwunsch!</span>
+      <div class="post-round-winner-row">
+        <span class="table-team-badge" style="background:${color}">T${winner.teamIndex + 1}</span>
+        <span class="post-round-winner-name">${winner.team.join(' & ')}</span>
+      </div>`;
+  }
+
+  const tbody     = document.getElementById('post-round-standings');
+  tbody.innerHTML = '';
+  computeStandings(round.teams, round.matches).forEach((row, i) => {
+    const color = TEAM_COLORS[row.teamIndex % TEAM_COLORS.length];
+    const diff  = row.pointsFor - row.pointsAgainst;
+    const tr    = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="rank">${i + 1}</td>
+      <td>
+        <span class="table-team-badge" style="background:${color}">T${row.teamIndex + 1}</span>
+        <span class="table-team-members">${row.team.join(' & ')}</span>
+      </td>
+      <td class="stat-cell win">${row.wins}</td>
+      <td class="stat-cell loss">${row.losses}</td>
+      <td class="stat-cell ${diff >= 0 ? 'positive' : 'negative'}">${diff > 0 ? '+' : ''}${diff}</td>`;
+    tbody.appendChild(tr);
+  });
 }
 
 function startNewRoundSameTeams() {
@@ -629,25 +665,34 @@ function startNewRoundNewTeams() {
 }
 
 function endSession() {
-  if (currentRounds.length === 0) {
-    document.getElementById('post-round-overlay').classList.remove('hidden'); // stay visible
+  if (scheduleActive) {
+    const msg = currentRounds.length > 0
+      ? `Spieltag beenden? Die aktuelle Runde wird verworfen. ${currentRounds.length} abgeschlossene Runde(n) werden gespeichert.`
+      : 'Spieltag beenden? Die aktuelle Runde wurde nicht abgeschlossen und wird verworfen.';
+    showConfirm(msg, performEndSession);
     return;
   }
-  showConfirm(
-    `Spieltag beenden? ${currentRounds.length} Runde(n) werden in der Datenbank gespeichert.`,
-    () => {
-      const session = {
-        id:     Date.now(),
-        date:   new Date().toISOString().slice(0, 10),
-        rounds: currentRounds,
-      };
-      db.sessions.push(session);
-      saveDB();
-      resetGameState();
-      switchTab('statistiken');
-      setTimeout(() => showDbStatus('Spieltag gespeichert! Bitte exportieren und Datei teilen.'), 200);
-    }
-  );
+  performEndSession();
+}
+
+function performEndSession() {
+  document.getElementById('post-round-overlay').classList.add('hidden');
+  const savedRounds = currentRounds.length;
+  if (savedRounds > 0) {
+    db.sessions.push({ id: Date.now(), date: new Date().toISOString().slice(0, 10), rounds: currentRounds });
+    saveDB();
+  }
+  resetGameState();
+  switchTab('home');
+  if (savedRounds > 0) {
+    setTimeout(() => showSessionSavedModal(savedRounds), 80);
+  }
+}
+
+function showSessionSavedModal(roundCount) {
+  document.getElementById('session-saved-rounds').textContent =
+    `${roundCount} Runde${roundCount !== 1 ? 'n' : ''} wurden in der Datenbank gespeichert.`;
+  document.getElementById('session-saved-overlay').classList.remove('hidden');
 }
 
 function resetGameState() {
@@ -996,9 +1041,32 @@ document.getElementById('generate-schedule-btn').addEventListener('click', () =>
 
 // Round management
 document.getElementById('btn-end-round').addEventListener('click', endRound);
-document.getElementById('btn-new-round-same').addEventListener('click', startNewRoundSameTeams);
-document.getElementById('btn-new-round-new').addEventListener('click', startNewRoundNewTeams);
+document.getElementById('btn-new-round-same').addEventListener('click', () => {
+  document.getElementById('post-round-overlay').classList.add('hidden');
+  startNewRoundSameTeams();
+});
+document.getElementById('btn-new-round-new').addEventListener('click', () => {
+  document.getElementById('post-round-overlay').classList.add('hidden');
+  startNewRoundNewTeams();
+});
 document.getElementById('btn-end-session').addEventListener('click', endSession);
+document.getElementById('btn-end-session-indicator').addEventListener('click', endSession);
+document.getElementById('post-round-close').addEventListener('click', () =>
+  document.getElementById('post-round-overlay').classList.add('hidden')
+);
+
+// Session saved modal
+document.getElementById('session-saved-export').addEventListener('click', exportDB);
+document.getElementById('session-saved-close').addEventListener('click', () =>
+  document.getElementById('session-saved-overlay').classList.add('hidden')
+);
+document.getElementById('session-saved-dismiss').addEventListener('click', () =>
+  document.getElementById('session-saved-overlay').classList.add('hidden')
+);
+document.getElementById('session-saved-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget)
+    document.getElementById('session-saved-overlay').classList.add('hidden');
+});
 
 // Database
 document.getElementById('export-btn').addEventListener('click', exportDB);

@@ -52,13 +52,33 @@
       <!-- ── POST-ROUND MODAL ── -->
       <div id="post-round-overlay" class="help-overlay hidden">
         <div class="help-modal post-round-modal">
-          <p class="post-round-title">Runde gespeichert</p>
+          <button id="post-round-close" class="help-close" aria-label="Schließen">×</button>
+          <div id="post-round-winner" class="post-round-winner"></div>
+          <div class="post-round-standings-wrap">
+            <table class="standings-table post-round-table">
+              <thead><tr><th>#</th><th>Team</th><th>S</th><th>N</th><th>Diff</th></tr></thead>
+              <tbody id="post-round-standings"></tbody>
+            </table>
+          </div>
           <p class="post-round-subtitle">Wie geht's weiter?</p>
           <div class="post-round-actions">
-            <button id="btn-new-round-same" class="btn-secondary-action">Gleiche Teams</button>
-            <button id="btn-new-round-new">Neue Teams</button>
+            <button id="btn-new-round-same" class="btn-secondary-action">Neue Runde – Gleiche Teams</button>
+            <button id="btn-new-round-new">Neue Runde – Neue Teams</button>
           </div>
           <button id="btn-end-session" class="btn-full btn-end-session">Spieltag beenden</button>
+        </div>
+      </div>
+
+      <!-- ── SESSION SAVED MODAL ── -->
+      <div id="session-saved-overlay" class="help-overlay hidden">
+        <div class="help-modal confirm-modal">
+          <button id="session-saved-close" class="help-close" aria-label="Schließen">×</button>
+          <p class="session-saved-title">✓ Spieltag gespeichert!</p>
+          <p id="session-saved-rounds" class="confirm-msg"></p>
+          <div class="confirm-actions">
+            <button id="session-saved-export" class="btn-save">Exportieren (.json)</button>
+            <button id="session-saved-dismiss" class="btn-secondary">Schließen</button>
+          </div>
         </div>
       </div>
 
@@ -120,8 +140,11 @@
         <div class="container">
 
           <div id="round-indicator" class="round-indicator hidden">
-            <span id="round-indicator-label">Runde 1</span>
-            <span id="round-indicator-saved" class="round-saved-badge hidden"></span>
+            <div class="round-indicator-left">
+              <span id="round-indicator-label">Runde 1</span>
+              <span id="round-indicator-saved" class="round-saved-badge hidden"></span>
+            </div>
+            <button id="btn-end-session-indicator" class="btn-end-session-indicator">Beenden</button>
           </div>
 
           <section class="card" id="section-players">

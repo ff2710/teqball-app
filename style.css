@@ -687,15 +687,36 @@ input[type="number"]:focus {
 .round-indicator {
   background: #fff;
   border-radius: 14px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   font-size: 0.88rem;
   font-weight: 700;
   color: #334155;
   box-shadow: 0 1px 3px rgba(0,0,0,0.07);
 }
+
+.round-indicator-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-end-session-indicator {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 5px 10px;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.btn-end-session-indicator:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+.btn-end-session-indicator:active { transform: scale(0.97); }
 
 .round-saved-badge {
   font-size: 0.72rem;
@@ -769,17 +790,56 @@ input[type="number"]:focus {
   gap: 14px;
 }
 
-.post-round-title {
+.post-round-winner {
+  text-align: center;
+  padding: 4px 0 6px;
+}
+
+.post-round-congrats {
+  display: block;
   font-size: 1rem;
   font-weight: 800;
   color: #0f172a;
-  margin-bottom: 0;
+  margin-bottom: 8px;
 }
 
+.post-round-winner-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.post-round-winner-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.post-round-standings-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -2px;
+}
+
+.post-round-table { font-size: 0.8rem; }
+.post-round-table td { padding: 8px 6px; }
+.post-round-table th { padding: 5px 6px; }
+
 .post-round-subtitle {
-  font-size: 0.82rem;
-  color: #64748b;
-  margin-top: -8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: -4px;
+}
+
+.session-saved-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #16a34a;
+  margin-bottom: 4px;
 }
 
 .post-round-actions {
