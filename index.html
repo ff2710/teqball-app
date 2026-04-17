@@ -25,11 +25,11 @@
           <button id="help-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Kurzanleitung</h2>
           <ul>
-            <li><strong>Vor dem Spieltag:</strong> Im Tab „Statistiken" zuerst die aktuellste <code>.json</code>-Datei importieren, damit alle bisherigen Daten vorhanden sind.</li>
+            <li><strong>Vor dem Spieltag:</strong> Oben auf der Spieltag-Seite die aktuellste <code>.json</code>-Datei importieren (ggf. zuerst aus der Cloud herunterladen).</li>
             <li><strong>Spieler hinzufügen:</strong> Wer schon mal gespielt hat, erscheint als Chip — diesen antippen statt den Namen neu einzutippen! Nur so werden die Langzeitstatistiken korrekt zugeordnet.</li>
-            <li><strong>Neue Runde:</strong> Nach einer vollständigen Runde kann mit „Neue Runde starten" eine weitere gespielt werden. Alle Runden werden am Ende gemeinsam gespeichert.</li>
+            <li><strong>Neue Runde:</strong> Nach einer vollständigen Runde mit „Neue Runde starten" weiterspielen. Alle Runden werden am Ende gemeinsam gespeichert.</li>
             <li><strong>Browser-Cache:</strong> Während des Spieltags den Browser-Cache nicht löschen — sonst gehen alle ungespeicherten Ergebnisse verloren.</li>
-            <li><strong>Nach dem Spieltag:</strong> Auf „Spieltag speichern" drücken, dann im Tab „Statistiken" exportieren und die <code>.json</code>-Datei in die Gruppe schicken, damit alle den gleichen Stand haben.</li>
+            <li><strong>Nach dem Spieltag:</strong> „Spieltag speichern" drücken, dann im Tab „Statistiken" exportieren. Die <code>.json</code>-Datei in die Gruppe schicken, damit alle den gleichen Stand haben.</li>
           </ul>
         </div>
       </div>
@@ -37,6 +37,20 @@
       <!-- ── TAB: SPIELTAG ── -->
       <div id="tab-spieltag" class="tab-content active">
         <div class="container">
+
+          <section class="card card-db-quick" id="section-db-quick">
+            <div class="db-quick-row">
+              <div class="db-quick-left">
+                <span class="db-quick-label">Datenbank</span>
+                <span id="db-quick-status" class="db-quick-status">Keine Datei geladen</span>
+              </div>
+              <div class="db-quick-actions">
+                <a id="cloud-link-spieltag" href="#" target="_blank" rel="noopener" class="btn-cloud-link hidden">Cloud ↗</a>
+                <label class="btn-sm" for="import-input-quick">Importieren</label>
+                <input type="file" id="import-input-quick" accept=".json" class="hidden" />
+              </div>
+            </div>
+          </section>
 
           <section class="card" id="section-players">
             <h2>Spieler</h2>
@@ -108,6 +122,7 @@
               <label class="btn btn-secondary" for="import-input">Importieren (.json)</label>
               <input type="file" id="import-input" accept=".json" class="hidden" />
             </div>
+            <a id="cloud-link-stats" href="#" target="_blank" rel="noopener" class="db-cloud-link hidden">Cloud-Ordner öffnen ↗</a>
             <p id="db-status" class="message"></p>
           </section>
 
@@ -115,6 +130,14 @@
       </div>
 
     </div>
+
+    <div id="export-toast" class="export-toast hidden">
+      <span>✓</span>
+      <span id="export-toast-filename" class="export-toast-filename"></span>
+      <span class="export-toast-msg">heruntergeladen</span>
+      <a id="export-toast-cloud" href="#" target="_blank" rel="noopener" class="export-toast-cloud hidden">In Cloud hochladen ↗</a>
+    </div>
+
     <script src="app.js"></script>
   </body>
 </html>

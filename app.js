@@ -2,6 +2,9 @@
 // CONSTANTS
 // ============================================================
 
+// Set to your shared cloud folder URL to enable cloud links (e.g. Google Drive, Dropbox)
+const CLOUD_URL = 'https://www.dropbox.com/scl/fo/qxazrprybzjbs02nb18dn/AFP9C4-QS7EbRVSvFyNoiOU?rlkey=jxxjpb2o197s4eja9dtew3bvm&st=icqjyj4o&dl=0';
+
 const TEAM_COLORS = [
   '#dc2626', // rot
   '#16a34a', // grün
@@ -44,13 +47,33 @@ function saveDB() {
 }
 
 function exportDB() {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10);
+  const time = now.toTimeString().slice(0, 5).replace(':', '');
+  const filename = `teqball_${date}_${time}.json`;
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `teqball_${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+  showExportToast(filename);
+}
+
+function showExportToast(filename) {
+  const toast = document.getElementById('export-toast');
+  document.getElementById('export-toast-filename').textContent = filename;
+  const cloudLink = document.getElementById('export-toast-cloud');
+  if (CLOUD_URL) {
+    cloudLink.href = CLOUD_URL;
+    cloudLink.classList.remove('hidden');
+  } else {
+    cloudLink.classList.add('hidden');
+  }
+  toast.classList.remove('hidden');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.add('hidden'), 6000);
 }
 
 function importDB(file) {
@@ -61,6 +84,8 @@ function importDB(file) {
       if (!Array.isArray(imported.players) || !Array.isArray(imported.sessions)) throw new Error();
       db = imported;
       saveDB();
+      localStorage.setItem('teqball_import', JSON.stringify({ filename: file.name, ts: Date.now() }));
+      renderImportStatus();
       showDbStatus('Datenbank erfolgreich importiert.');
       renderKnownPlayers();
       renderStats();
@@ -69,6 +94,24 @@ function importDB(file) {
     }
   };
   reader.readAsText(file);
+}
+
+function renderImportStatus() {
+  const el = document.getElementById('db-quick-status');
+  const raw = localStorage.getItem('teqball_import');
+  if (!raw) { el.textContent = 'Keine Datei geladen'; el.classList.remove('loaded'); return; }
+  const { filename, ts } = JSON.parse(raw);
+  const date = new Date(ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  el.textContent = `${filename} · ${date}`;
+  el.classList.add('loaded');
+}
+
+function initCloudLinks() {
+  if (!CLOUD_URL) return;
+  ['cloud-link-spieltag', 'cloud-link-stats'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.href = CLOUD_URL; el.classList.remove('hidden'); }
+  });
 }
 
 function showDbStatus(msg) {
@@ -799,6 +842,9 @@ document.getElementById('export-btn').addEventListener('click', exportDB);
 document.getElementById('import-input').addEventListener('change', e => {
   if (e.target.files[0]) importDB(e.target.files[0]);
 });
+document.getElementById('import-input-quick').addEventListener('change', e => {
+  if (e.target.files[0]) importDB(e.target.files[0]);
+});
 
 // ============================================================
 // INIT
@@ -806,3 +852,5 @@ document.getElementById('import-input').addEventListener('change', e => {
 
 renderKnownPlayers();
 renderStats();
+renderImportStatus();
+initCloudLinks();
