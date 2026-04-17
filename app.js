@@ -126,6 +126,7 @@ function switchTab(tabId) {
     panel.classList.toggle('active', panel.id === `tab-${tabId}`)
   );
   if (tabId === 'statistiken') renderStats();
+  if (tabId === 'historie')    renderHistorie();
   if (tabId === 'home')        updateHomeBanner();
 }
 
@@ -290,7 +291,7 @@ function generateTeams() {
     document.getElementById('schedule-container').innerHTML = '';
     document.getElementById('section-table').classList.add('hidden');
     document.getElementById('end-round-area').classList.add('hidden');
-    document.getElementById('post-round-area').classList.add('hidden');
+    document.getElementById('post-round-overlay').classList.add('hidden');
     document.getElementById('round-label').textContent = '';
     renderTeams(currentTeams);
   };
@@ -346,7 +347,7 @@ function generateSchedule(teams) {
     container.innerHTML = '';
     document.getElementById('section-table').classList.add('hidden');
     document.getElementById('end-round-area').classList.add('hidden');
-    document.getElementById('post-round-area').classList.add('hidden');
+    document.getElementById('post-round-overlay').classList.add('hidden');
 
     if (teams.length < 2) {
       container.innerHTML =
@@ -591,10 +592,10 @@ function endRound() {
 
   document.getElementById('section-table').classList.add('hidden');
   document.getElementById('end-round-area').classList.add('hidden');
-  document.getElementById('post-round-area').classList.remove('hidden');
+  document.getElementById('post-round-overlay').classList.remove('hidden');
   updateRoundIndicator();
   updateHomeBanner();
-  document.getElementById('post-round-area').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('post-round-overlay').scrollIntoView({ behavior: 'smooth' });
 }
 
 function showEndRoundMsg(msg) {
@@ -606,7 +607,7 @@ function showEndRoundMsg(msg) {
 
 function startNewRoundSameTeams() {
   currentMatches = [];
-  document.getElementById('post-round-area').classList.add('hidden');
+  document.getElementById('post-round-overlay').classList.add('hidden');
   renderTeams(currentTeams);
   generateSchedule(currentTeams);
   document.getElementById('section-schedule').scrollIntoView({ behavior: 'smooth' });
@@ -616,7 +617,7 @@ function startNewRoundNewTeams() {
   currentTeams   = [];
   currentMatches = [];
   scheduleActive = false;
-  document.getElementById('post-round-area').classList.add('hidden');
+  document.getElementById('post-round-overlay').classList.add('hidden');
   document.getElementById('section-table').classList.add('hidden');
   document.getElementById('teams-container').innerHTML    = '';
   document.getElementById('schedule-container').innerHTML = '';
@@ -629,7 +630,7 @@ function startNewRoundNewTeams() {
 
 function endSession() {
   if (currentRounds.length === 0) {
-    document.getElementById('post-round-area').classList.remove('hidden'); // stay visible
+    document.getElementById('post-round-overlay').classList.remove('hidden'); // stay visible
     return;
   }
   showConfirm(
@@ -663,7 +664,7 @@ function resetGameState() {
   document.getElementById('standings-container').innerHTML = '';
   document.getElementById('section-table').classList.add('hidden');
   document.getElementById('end-round-area').classList.add('hidden');
-  document.getElementById('post-round-area').classList.add('hidden');
+  document.getElementById('post-round-overlay').classList.add('hidden');
   document.getElementById('round-indicator').classList.add('hidden');
   document.getElementById('round-label').textContent = '';
   renderPlayers();
@@ -728,6 +729,64 @@ function startGame() {
 }
 
 // ============================================================
+// ROUND HISTORY OVERLAY
+// ============================================================
+
+function getRoundWinner(round) {
+  const standings = computeStandings(round.teams, round.matches);
+  if (!standings.length) return null;
+  const top = standings[0];
+  const second = standings[1];
+  if (second && top.wins === second.wins &&
+      (top.pointsFor - top.pointsAgainst) === (second.pointsFor - second.pointsAgainst)) {
+    return null; // draw
+  }
+  return top;
+}
+
+function showRoundsHistory() {
+  const list = document.getElementById('rounds-history-list');
+  list.innerHTML = '';
+
+  if (currentRounds.length === 0) {
+    list.innerHTML = '<p class="message">Noch keine Runden beendet.</p>';
+  } else {
+    currentRounds.forEach((round, i) => {
+      const row = document.createElement('div');
+      row.className = 'rounds-history-row';
+
+      const label = document.createElement('span');
+      label.className = 'rounds-history-round-label';
+      label.textContent = `Runde ${i + 1}`;
+
+      const winner = getRoundWinner(round);
+      const winnerEl = document.createElement('span');
+      winnerEl.className = 'rounds-history-winner';
+
+      if (!winner) {
+        winnerEl.textContent = 'Unentschieden';
+      } else {
+        const color = TEAM_COLORS[winner.teamIndex % TEAM_COLORS.length];
+        const badge = document.createElement('span');
+        badge.className = 'table-team-badge';
+        badge.style.background = color;
+        badge.textContent = `T${winner.teamIndex + 1}`;
+        winnerEl.appendChild(badge);
+        const names = document.createElement('span');
+        names.textContent = ` ${winner.team.join(' & ')}  ·  ${winner.wins}:${winner.losses}`;
+        winnerEl.appendChild(names);
+      }
+
+      row.appendChild(label);
+      row.appendChild(winnerEl);
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById('rounds-history-overlay').classList.remove('hidden');
+}
+
+// ============================================================
 // STATISTICS
 // ============================================================
 
@@ -779,6 +838,65 @@ function computePlayerStats(sessions) {
     .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins);
 }
 
+function renderHistorie() {
+  const container = document.getElementById('historie-container');
+  if (db.sessions.length === 0) {
+    container.innerHTML = '<p class="message">Noch keine Spieltage gespeichert.</p>';
+    return;
+  }
+  container.innerHTML = '';
+  [...db.sessions].reverse().forEach(session => {
+    const rounds = normalizeSessionRounds(session);
+    const block  = document.createElement('div');
+    block.className = 'historie-session';
+
+    const header = document.createElement('div');
+    header.className = 'historie-session-header';
+    const dateEl = document.createElement('span');
+    dateEl.className   = 'historie-session-date';
+    dateEl.textContent = new Date(session.date).toLocaleDateString('de-DE',
+      { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const roundsEl = document.createElement('span');
+    roundsEl.className   = 'historie-session-rounds';
+    roundsEl.textContent = `${rounds.length} Runde${rounds.length !== 1 ? 'n' : ''}`;
+    header.appendChild(dateEl);
+    header.appendChild(roundsEl);
+    block.appendChild(header);
+
+    rounds.forEach((round, i) => {
+      const row    = document.createElement('div');
+      row.className = 'historie-round';
+
+      const label = document.createElement('span');
+      label.className   = 'historie-round-label';
+      label.textContent = `Runde ${i + 1}`;
+
+      const winner = getRoundWinner(round);
+      const winnerEl = document.createElement('span');
+      winnerEl.className = 'historie-winner';
+
+      if (!winner) {
+        winnerEl.textContent = 'Unentschieden';
+      } else {
+        const color = TEAM_COLORS[winner.teamIndex % TEAM_COLORS.length];
+        const badge = document.createElement('span');
+        badge.className = 'table-team-badge';
+        badge.style.background = color;
+        badge.textContent = `T${winner.teamIndex + 1}`;
+        winnerEl.appendChild(badge);
+        const names = document.createTextNode(` ${winner.team.join(' & ')}  ·  ${winner.wins}:${winner.losses}`);
+        winnerEl.appendChild(names);
+      }
+
+      row.appendChild(label);
+      row.appendChild(winnerEl);
+      block.appendChild(row);
+    });
+
+    container.appendChild(block);
+  });
+}
+
 function renderStats() {
   const container = document.getElementById('stats-container');
   if (db.sessions.length === 0) {
@@ -828,6 +946,16 @@ document.getElementById('help-close').addEventListener('click', () =>
 );
 document.getElementById('help-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) document.getElementById('help-overlay').classList.add('hidden');
+});
+
+// Rounds history
+document.getElementById('round-indicator-saved').addEventListener('click', showRoundsHistory);
+document.getElementById('rounds-history-close').addEventListener('click', () =>
+  document.getElementById('rounds-history-overlay').classList.add('hidden')
+);
+document.getElementById('rounds-history-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget)
+    document.getElementById('rounds-history-overlay').classList.add('hidden');
 });
 
 // Confirm modal

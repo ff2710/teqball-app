@@ -352,8 +352,8 @@ input[type="number"]:focus {
   align-items: center;
   justify-content: space-between;
   padding: 11px 14px;
-  background: #f8fafc;
-  border: 1.5px solid #e2e8f0;
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
   border-radius: 12px;
   font-weight: 500;
   font-size: 0.95rem;
@@ -704,7 +704,10 @@ input[type="number"]:focus {
   background: #dcfce7;
   padding: 3px 10px;
   border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.round-saved-badge:hover { background: #bbf7d0; }
 
 /* ── Home: start card ── */
 .card-start { gap: 12px; }
@@ -760,13 +763,23 @@ input[type="number"]:focus {
 .btn-end-round { background: #dc2626; }
 .btn-end-round:hover { background: #b91c1c; }
 
-.post-round-label {
-  font-size: 0.78rem;
-  font-weight: 700;
+.post-round-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.post-round-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0;
+}
+
+.post-round-subtitle {
+  font-size: 0.82rem;
   color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 2px;
+  margin-top: -8px;
 }
 
 .post-round-actions {
@@ -831,6 +844,64 @@ input[type="number"]:focus {
   gap: 10px;
 }
 
+/* ── Rounds history overlay ── */
+.rounds-history-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.rounds-history-row:last-child { border-bottom: none; }
+.rounds-history-round-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  min-width: 52px;
+}
+.rounds-history-winner { font-size: 0.88rem; font-weight: 600; color: #334155; }
+
+/* ── Historie tab ── */
+.historie-session {
+  border-bottom: 1.5px solid #f1f5f9;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+.historie-session:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.historie-session-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.historie-session-date {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.historie-session-rounds {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+.historie-round {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 0.88rem;
+}
+.historie-round-label {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-width: 52px;
+}
+.historie-winner { font-weight: 600; color: #334155; }
+
+/* ── DB actions ── */
 .db-actions button {
   flex: 1;
   min-width: 140px;

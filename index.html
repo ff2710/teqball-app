@@ -18,6 +18,7 @@
           <button class="tab-btn active" data-tab="home">Home</button>
           <button class="tab-btn" data-tab="spieltag">Spieltag</button>
           <button class="tab-btn" data-tab="statistiken">Statistiken</button>
+          <button class="tab-btn" data-tab="historie">Historie</button>
         </nav>
       </header>
 
@@ -45,6 +46,28 @@
             <button id="confirm-ok" class="btn-danger">Ja, fortfahren</button>
             <button id="confirm-cancel">Abbrechen</button>
           </div>
+        </div>
+      </div>
+
+      <!-- ── POST-ROUND MODAL ── -->
+      <div id="post-round-overlay" class="help-overlay hidden">
+        <div class="help-modal post-round-modal">
+          <p class="post-round-title">Runde gespeichert</p>
+          <p class="post-round-subtitle">Wie geht's weiter?</p>
+          <div class="post-round-actions">
+            <button id="btn-new-round-same" class="btn-secondary-action">Gleiche Teams</button>
+            <button id="btn-new-round-new">Neue Teams</button>
+          </div>
+          <button id="btn-end-session" class="btn-full btn-end-session">Spieltag beenden</button>
+        </div>
+      </div>
+
+      <!-- ── ROUNDS HISTORY OVERLAY ── -->
+      <div id="rounds-history-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="rounds-history-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>Gespeicherte Runden</h2>
+          <div id="rounds-history-list"></div>
         </div>
       </div>
 
@@ -134,14 +157,6 @@
             <button id="btn-end-round" class="btn-full btn-end-round">Runde beenden</button>
           </div>
 
-          <div id="post-round-area" class="card hidden">
-            <p class="post-round-label">Runde gespeichert — wie weiter?</p>
-            <div class="post-round-actions">
-              <button id="btn-new-round-same" class="btn-secondary-action">Gleiche Teams</button>
-              <button id="btn-new-round-new">Neu mischen</button>
-            </div>
-            <button id="btn-end-session" class="btn-full btn-end-session">Spieltag beenden</button>
-          </div>
 
         </div>
       </div>
@@ -168,6 +183,18 @@
             <p id="db-status" class="message"></p>
           </section>
 
+        </div>
+      </div>
+
+      <!-- ── TAB: HISTORIE ── -->
+      <div id="tab-historie" class="tab-content">
+        <div class="container">
+          <section class="card">
+            <h2>Spieltage</h2>
+            <div id="historie-container">
+              <p class="message">Noch keine Spieltage gespeichert.</p>
+            </div>
+          </section>
         </div>
       </div>
 
