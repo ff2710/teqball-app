@@ -127,17 +127,6 @@
       <!-- ── TAB: HOME ── -->
       <div id="tab-home" class="tab-content active">
         <div class="container">
-
-          <section class="card">
-           <h3>☁ Cloud Datenbank</h3>
-           <p>Immer die neueste Datei verwenden.</p>
-            <a
-              href="https://www.dropbox.com/scl/fo/qxazrprybzjbs02nb18dn/AFP9C4-QS7EbRVSvFyNoiOU?rlkey=jxxjpb2o197s4eja9dtew3bvm&st=orophmyd&dl=0"
-              class="dropbox-embed"
-              data-height="420px"
-              data-width="100%">
-            </a>
-          </section>
           
           <section class="card card-db-quick" id="section-db-quick">
             <div class="db-quick-row">
@@ -150,6 +139,16 @@
                 <label class="btn-sm" for="import-input-quick">Importieren</label>
                 <input type="file" id="import-input-quick" accept=".json" class="hidden" />
               </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="cloud-header">
+              <h3>☁ Cloud Datenbank</h3>
+              <button id="refresh-cloud" class="btn-refresh" title="Aktualisieren">↻</button>
+            </div>
+            <div id="cloud-file-container">
+              <div class="loading-spinner">Suche nach neuester Datei...</div>
             </div>
           </section>
 
