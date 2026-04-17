@@ -15,27 +15,53 @@
           <button id="help-btn" class="btn-help" aria-label="Hilfe">?</button>
         </div>
         <nav class="tabs">
-          <button class="tab-btn active" data-tab="spieltag">Spieltag</button>
+          <button class="tab-btn active" data-tab="home">Home</button>
+          <button class="tab-btn" data-tab="spieltag">Spieltag</button>
           <button class="tab-btn" data-tab="statistiken">Statistiken</button>
         </nav>
       </header>
 
+      <!-- ── HELP MODAL ── -->
       <div id="help-overlay" class="help-overlay hidden">
         <div class="help-modal">
           <button id="help-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Kurzanleitung</h2>
           <ul>
-            <li><strong>Vor dem Spieltag:</strong> Oben auf der Spieltag-Seite die aktuellste <code>.json</code>-Datei importieren (ggf. zuerst aus der Cloud herunterladen).</li>
-            <li><strong>Spieler hinzufügen:</strong> Wer schon mal gespielt hat, erscheint als Chip — diesen antippen statt den Namen neu einzutippen! Nur so werden die Langzeitstatistiken korrekt zugeordnet.</li>
-            <li><strong>Neue Runde:</strong> Nach einer vollständigen Runde mit „Neue Runde starten" weiterspielen. Alle Runden werden am Ende gemeinsam gespeichert.</li>
-            <li><strong>Browser-Cache:</strong> Während des Spieltags den Browser-Cache nicht löschen — sonst gehen alle ungespeicherten Ergebnisse verloren.</li>
-            <li><strong>Nach dem Spieltag:</strong> „Spieltag speichern" drücken, dann im Tab „Statistiken" exportieren. Die <code>.json</code>-Datei in die Gruppe schicken, damit alle den gleichen Stand haben.</li>
+            <li><strong>Vor dem Spieltag:</strong> Auf der Startseite die aktuellste <code>.json</code>-Datei importieren (ggf. zuerst aus der Cloud herunterladen).</li>
+            <li><strong>Spieler:</strong> Bekannte Spieler als Chip antippen — nicht neu eintippen! Nur so stimmen die Langzeitstatistiken.</li>
+            <li><strong>Runde beenden:</strong> Erst wenn alle Ergebnisse eingetragen sind, auf „Runde beenden" drücken — erst dann werden sie gespeichert.</li>
+            <li><strong>Gleiche Teams:</strong> Selbe Spielerpaare, neuer zufälliger Spielplan. <strong>Neu mischen:</strong> Spieler bleiben, werden neu zusammengewürfelt — bereits gespielte Paarungen dieses Spieltags werden dabei vermieden.</li>
+            <li><strong>Spieltag beenden:</strong> Speichert alle Runden in die Datenbank. Danach im Tab „Statistiken" exportieren und Datei in die Gruppe schicken.</li>
+            <li><strong>Browser-Cache:</strong> Während des Spieltags nicht löschen — ungespeicherte Ergebnisse gehen verloren.</li>
           </ul>
         </div>
       </div>
 
-      <!-- ── TAB: SPIELTAG ── -->
-      <div id="tab-spieltag" class="tab-content active">
+      <!-- ── CONFIRM MODAL ── -->
+      <div id="confirm-overlay" class="help-overlay hidden">
+        <div class="help-modal confirm-modal">
+          <p id="confirm-msg" class="confirm-msg"></p>
+          <div class="confirm-actions">
+            <button id="confirm-ok" class="btn-danger">Ja, fortfahren</button>
+            <button id="confirm-cancel">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── NO-DB WARNING ── -->
+      <div id="no-db-overlay" class="help-overlay hidden">
+        <div class="help-modal confirm-modal">
+          <p class="confirm-msg">Keine Datenbank importiert. Ohne Import werden bisherige Langzeitstatistiken nicht berücksichtigt.</p>
+          <div class="confirm-actions">
+            <label class="btn btn-secondary btn-sm-full" for="import-input-home">Jetzt importieren</label>
+            <input type="file" id="import-input-home" accept=".json" class="hidden" />
+            <button id="no-db-continue" class="btn-secondary">Ohne DB starten</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: HOME ── -->
+      <div id="tab-home" class="tab-content active">
         <div class="container">
 
           <section class="card card-db-quick" id="section-db-quick">
@@ -51,6 +77,29 @@
               </div>
             </div>
           </section>
+
+          <section class="card card-start">
+            <div id="active-session-banner" class="active-session-banner hidden">
+              <div class="active-session-info">
+                <span class="active-session-dot"></span>
+                <span id="active-session-text">Aktiver Spieltag</span>
+              </div>
+              <button id="btn-resume-session" class="btn-sm">Weiterspielen →</button>
+            </div>
+            <button id="start-game-btn" class="btn-full btn-start">Spieltag starten</button>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- ── TAB: SPIELTAG ── -->
+      <div id="tab-spieltag" class="tab-content">
+        <div class="container">
+
+          <div id="round-indicator" class="round-indicator hidden">
+            <span id="round-indicator-label">Runde 1</span>
+            <span id="round-indicator-saved" class="round-saved-badge hidden"></span>
+          </div>
 
           <section class="card" id="section-players">
             <h2>Spieler</h2>
@@ -75,30 +124,23 @@
             <div id="schedule-container"></div>
           </section>
 
-          <section id="new-round-card" class="card hidden">
-            <h2>Neue Runde — <span id="new-round-number"></span></h2>
-            <div id="new-round-known-players" class="known-players hidden"></div>
-            <ul id="new-round-player-list"></ul>
-            <div class="input-row">
-              <input type="text" id="new-round-player-input" placeholder="Spieler hinzufügen" autocomplete="off" />
-              <button id="new-round-add-btn">+</button>
-            </div>
-            <p id="new-round-error" class="error hidden"></p>
-            <div class="round-actions">
-              <button id="btn-keep-teams">Gleiche Teams</button>
-              <button id="btn-reshuffle-teams" class="btn-secondary-action">Teams neu auslosen</button>
-            </div>
-          </section>
-
           <section class="card hidden" id="section-table">
             <h2>Livetabelle</h2>
             <div id="standings-container"></div>
           </section>
 
-          <div id="save-area" class="hidden">
-            <p id="save-msg" class="message hidden"></p>
-            <button id="btn-new-round" class="btn-full btn-new-round hidden">Neue Runde starten</button>
-            <button id="save-session-btn" class="btn-full btn-save">Spieltag speichern</button>
+          <div id="end-round-area" class="hidden">
+            <p id="end-round-msg" class="message hidden"></p>
+            <button id="btn-end-round" class="btn-full btn-end-round">Runde beenden</button>
+          </div>
+
+          <div id="post-round-area" class="card hidden">
+            <p class="post-round-label">Runde gespeichert — wie weiter?</p>
+            <div class="post-round-actions">
+              <button id="btn-new-round-same" class="btn-secondary-action">Gleiche Teams</button>
+              <button id="btn-new-round-new">Neu mischen</button>
+            </div>
+            <button id="btn-end-session" class="btn-full btn-end-session">Spieltag beenden</button>
           </div>
 
         </div>
