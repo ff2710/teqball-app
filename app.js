@@ -429,41 +429,39 @@ function renderSchedule(teams) {
   const soloTeamIndex = teams.findIndex(t => t.length === 1);
 
   currentMatches.forEach((match, i) => {
-    const div    = document.createElement('div');
-    div.className = 'match';
+    const helperA = (soloTeamIndex !== -1 && match.teamA === soloTeamIndex) ? match.helper : null;
+    const helperB = (soloTeamIndex !== -1 && match.teamB === soloTeamIndex) ? match.helper : null;
 
-    const header = document.createElement('div');
-    header.className = 'match-header';
+    const div = document.createElement('div');
+    div.className = 'match';
 
     const num = document.createElement('span');
     num.className   = 'match-num';
     num.textContent = `#${i + 1}`;
 
-    const vs = document.createElement('span');
-    vs.className   = 'match-vs';
-    vs.textContent = 'vs';
+    const body = document.createElement('div');
+    body.className = 'match-body';
 
-    const helperA = (soloTeamIndex !== -1 && match.teamA === soloTeamIndex) ? match.helper : null;
-    const helperB = (soloTeamIndex !== -1 && match.teamB === soloTeamIndex) ? match.helper : null;
+    const sideA = document.createElement('div');
+    sideA.className = 'match-side-a';
+    sideA.appendChild(teamBadge(match.teamA, teams, helperA));
+    sideA.appendChild(createScoreInput(match.scoreA, val => { currentMatches[i].scoreA = val; updateStandings(); }));
 
-    header.appendChild(num);
-    header.appendChild(teamBadge(match.teamA, teams, helperA));
-    header.appendChild(vs);
-    header.appendChild(teamBadge(match.teamB, teams, helperB));
-
-    const scoreRow = document.createElement('div');
-    scoreRow.className = 'score-row';
-    const inputA = createScoreInput(match.scoreA, val => { currentMatches[i].scoreA = val; updateStandings(); });
-    const colon  = document.createElement('span');
+    const colon = document.createElement('span');
     colon.className   = 'score-colon';
     colon.textContent = ':';
-    const inputB = createScoreInput(match.scoreB, val => { currentMatches[i].scoreB = val; updateStandings(); });
-    scoreRow.appendChild(inputA);
-    scoreRow.appendChild(colon);
-    scoreRow.appendChild(inputB);
 
-    div.appendChild(header);
-    div.appendChild(scoreRow);
+    const sideB = document.createElement('div');
+    sideB.className = 'match-side-b';
+    sideB.appendChild(createScoreInput(match.scoreB, val => { currentMatches[i].scoreB = val; updateStandings(); }));
+    sideB.appendChild(teamBadge(match.teamB, teams, helperB));
+
+    body.appendChild(sideA);
+    body.appendChild(colon);
+    body.appendChild(sideB);
+
+    div.appendChild(num);
+    div.appendChild(body);
     container.appendChild(div);
   });
 }
