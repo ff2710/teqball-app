@@ -134,8 +134,9 @@ function switchTab(tabId) {
 // CONFIRM / DIALOGS
 // ============================================================
 
-function showConfirm(msg, onOk) {
+function showConfirm(msg, onOk, okText = 'Ja, fortfahren') {
   document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-ok').textContent = okText;
   document.getElementById('confirm-overlay').classList.remove('hidden');
   document.getElementById('confirm-ok').onclick = () => {
     document.getElementById('confirm-overlay').classList.add('hidden');
@@ -174,7 +175,9 @@ function renderKnownPlayers() {
 
 function renderPlayers() {
   const list = document.getElementById('player-list');
+  const header = document.getElementById('selected-players-header');
   list.innerHTML = '';
+  header.classList.toggle('hidden', currentPlayers.length === 0);
   currentPlayers.forEach((name, index) => {
     const li         = document.createElement('li');
     const nameSpan   = document.createElement('span');
@@ -325,11 +328,20 @@ function renderTeams(teams) {
   });
 }
 
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 function teamBadge(teamIndex, teams, helperName = null) {
   const color = TEAM_COLORS[teamIndex % TEAM_COLORS.length];
   const span  = document.createElement('span');
   span.className = 'team-badge';
-  span.style.backgroundColor = color;
+  span.style.backgroundColor = hexToRgba(color, 0.13);
+  span.style.color = color;
+  span.style.border = `1.5px solid ${hexToRgba(color, 0.3)}`;
   const membersText = helperName
     ? `${teams[teamIndex][0]} + ${helperName}`
     : teams[teamIndex].join(' & ');
@@ -667,7 +679,7 @@ function endSession() {
     const msg = currentRounds.length > 0
       ? `Spieltag beenden? Die aktuelle Runde wird verworfen. ${currentRounds.length} abgeschlossene Runde(n) werden gespeichert.`
       : 'Spieltag beenden? Die aktuelle Runde wurde nicht abgeschlossen und wird verworfen.';
-    showConfirm(msg, performEndSession);
+    showConfirm(msg, performEndSession, 'Ja, beenden');
     return;
   }
   performEndSession();

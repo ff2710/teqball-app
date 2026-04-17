@@ -371,6 +371,15 @@ input[type="number"]:focus {
   flex-shrink: 0;
 }
 
+/* ── Selected players header ── */
+.selected-players-header {
+  display: flex;
+  align-items: center;
+  padding-top: 4px;
+  border-top: 1.5px solid #e2e8f0;
+  margin-top: 2px;
+}
+
 /* ── Team cards ── */
 #teams-container {
   display: flex;
@@ -468,11 +477,11 @@ input[type="number"]:focus {
 }
 
 .score-input {
-  width: 68px !important;
+  width: 52px !important;
   text-align: center;
-  font-size: 1.5rem !important;
+  font-size: 1.4rem !important;
   font-weight: 700;
-  padding: 10px 4px !important;
+  padding: 10px 2px !important;
   border-radius: 12px !important;
 }
 
@@ -868,7 +877,12 @@ input[type="number"]:focus {
   gap: 10px;
   flex-wrap: wrap;
 }
-.post-round-actions button { flex: 1; min-width: 140px; }
+.post-round-actions button {
+  flex: 1;
+  min-width: 120px;
+  white-space: normal;
+  line-height: 1.35;
+}
 
 .btn-secondary-action {
   background: #f1f5f9;
@@ -877,8 +891,8 @@ input[type="number"]:focus {
 }
 .btn-secondary-action:hover { background: #e2e8f0; }
 
-.btn-end-session { background: #16a34a; }
-.btn-end-session:hover { background: #15803d; }
+.btn-end-session { background: #dc2626; }
+.btn-end-session:hover { background: #b91c1c; }
 
 /* ── Confirm modal ── */
 .confirm-modal { padding: 24px 22px 20px; }
