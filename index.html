@@ -5,12 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Teqball</title>
     <link rel="stylesheet" href="style.css" />
-    <script
-      type="text/javascript"
-      src="https://www.dropbox.com/static/api/2/dropins.js"
-      id="dropboxjs"
-      data-app-key="28vptyahlwsl5jg">
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   </head>
   <body>
     <div class="app">
@@ -34,12 +30,12 @@
           <button id="help-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Kurzanleitung</h2>
           <ul>
-            <li><strong>Vor dem Spieltag:</strong> Auf der Startseite die aktuellste <code>.json</code>-Datei importieren (ggf. zuerst aus der Cloud herunterladen).</li>
+            <li><strong>Vor dem Spieltag:</strong> Warten bis der grüne Punkt erscheint — die App synchronisiert sich automatisch mit allen Geräten.</li>
             <li><strong>Spieler:</strong> Bekannte Spieler als Chip antippen — nicht neu eintippen! Nur so stimmen die Langzeitstatistiken.</li>
-            <li><strong>Runde beenden:</strong> Erst wenn alle Ergebnisse eingetragen sind, auf „Runde beenden &amp; speichern" drücken — erst dann werden sie gespeichert.</li>
+            <li><strong>Runde beenden:</strong> Erst wenn alle Ergebnisse eingetragen sind, auf „Runde beenden &amp; speichern" drücken.</li>
             <li><strong>Gleiche Teams:</strong> Selbe Spielerpaare, neuer zufälliger Spielplan. <strong>Neue Teams:</strong> Spieler bleiben, werden neu zusammengewürfelt — bereits gespielte Paarungen dieses Spieltags werden dabei vermieden.</li>
-            <li><strong>Spieltag beenden:</strong> Speichert alle Runden in die Datenbank. Danach im Tab „Statistiken" exportieren und Datei in die Gruppe schicken.</li>
-            <li><strong>Browser-Cache:</strong> Während des Spieltags nicht löschen — ungespeicherte Ergebnisse gehen verloren.</li>
+            <li><strong>Spieltag beenden:</strong> Speichert alle Runden — alle Geräte synchronisieren sich automatisch.</li>
+            <li><strong>Browser-Cache:</strong> Während des Spieltags nicht löschen — ungespeicherte Runden gehen verloren.</li>
           </ul>
         </div>
       </div>
@@ -80,9 +76,9 @@
           <button id="session-saved-close" class="help-close" aria-label="Schließen">×</button>
           <p class="session-saved-title">✓ Spieltag gespeichert!</p>
           <p id="session-saved-rounds" class="confirm-msg"></p>
-          <p class="session-saved-hint">Wichtig: Datei herunterladen und in der Cloud hochladen, damit alle den aktuellen Stand haben.</p>
+          <p class="session-saved-hint">Daten wurden automatisch mit allen Geräten synchronisiert.</p>
           <div class="confirm-actions">
-            <button id="session-saved-export" class="btn-save">Exportieren</button>
+            <button id="session-saved-export" class="btn-save">Backup exportieren</button>
             <button id="session-saved-dismiss" class="btn-secondary">Schließen</button>
           </div>
         </div>
@@ -97,48 +93,14 @@
         </div>
       </div>
 
-      <!-- ── NO-DB WARNING ── -->
-      <div id="no-db-overlay" class="help-overlay hidden">
-        <div class="help-modal confirm-modal">
-          <p class="confirm-msg">Keine Datenbank importiert. Ohne Import werden bisherige Langzeitstatistiken nicht berücksichtigt.</p>
-          <div class="confirm-actions">
-            <label class="btn btn-secondary btn-sm-full" for="import-input-home">Jetzt importieren</label>
-            <input type="file" id="import-input-home" accept=".json" class="hidden" />
-            <button id="no-db-continue" class="btn-secondary">Ohne DB starten</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── SPIELTAG LOCKED OVERLAY ── -->
-      <div id="spieltag-locked-overlay" class="help-overlay hidden">
-        <div class="help-modal spieltag-locked-modal">
-          <div class="locked-icon-wrap">🔒</div>
-          <h2 class="locked-title">Datenbank erforderlich</h2>
-          <p class="locked-text">
-            Bitte lade zuerst die aktuelle Datenbank herunter. Die neueste
-            <code>.json</code>-Datei findest du in der
-            <a id="locked-cloud-link" href="#" target="_blank" rel="noopener" class="locked-cloud-link">Cloud ↗</a>.
-            Herunterladen und dann im <strong>Home-Tab</strong> auf <strong>„Importieren"</strong> drücken.
-          </p>
-          <button id="locked-goto-home" class="btn-full">Zum Home-Tab</button>
-        </div>
-      </div>
-
       <!-- ── TAB: HOME ── -->
       <div id="tab-home" class="tab-content active">
         <div class="container">
-          
-          <section class="card card-db-quick" id="section-db-quick">
-            <div class="db-quick-row">
-              <div class="db-quick-left">
-                <span class="db-quick-label">Datenbank</span>
-                <span id="db-quick-status" class="db-quick-status">Keine Datei geladen</span>
-              </div>
-              <div class="db-quick-actions">
-                <a id="cloud-link-spieltag" href="#" target="_blank" rel="noopener" class="btn-cloud-link hidden">Cloud ↗</a>
-                <label class="btn-sm" for="import-input-quick">Importieren</label>
-                <input type="file" id="import-input-quick" accept=".json" class="hidden" />
-              </div>
+
+          <section class="card card-db-quick" id="section-sync">
+            <div class="sync-row">
+              <span id="sync-dot" class="sync-dot sync-loading"></span>
+              <span id="sync-status-text" class="sync-status-text">Verbinde...</span>
             </div>
           </section>
 
@@ -150,8 +112,7 @@
               </div>
               <button id="btn-resume-session" class="btn-sm">Weiterspielen →</button>
             </div>
-            <button id="start-game-btn" class="btn-full btn-start">Spieltag starten</button>
-            <p id="no-db-hint" class="no-db-hint hidden">Bitte zuerst eine Datenbank importieren (siehe oben).</p>
+            <button id="start-game-btn" class="btn-full btn-start" disabled style="opacity:0.4">Spieltag starten</button>
           </section>
 
         </div>
@@ -222,9 +183,10 @@
           <section class="card">
             <h2>Datenbank</h2>
             <div class="db-actions">
-              <button id="export-btn">Exportieren</button>
+              <button id="export-btn">Exportieren (.json)</button>
+              <label class="btn btn-secondary" for="import-input-backup">Backup importieren</label>
+              <input type="file" id="import-input-backup" accept=".json" class="hidden" />
             </div>
-            <a id="cloud-link-stats" href="#" target="_blank" rel="noopener" class="db-cloud-link hidden">Cloud-Ordner öffnen ↗</a>
             <p id="db-status" class="message"></p>
           </section>
 
@@ -249,7 +211,6 @@
       <span>✓</span>
       <span id="export-toast-filename" class="export-toast-filename"></span>
       <span class="export-toast-msg">heruntergeladen</span>
-      <a id="export-toast-cloud" href="#" target="_blank" rel="noopener" class="export-toast-cloud hidden">In Cloud hochladen ↗</a>
     </div>
 
     <script src="app.js"></script>

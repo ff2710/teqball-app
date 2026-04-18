@@ -17,10 +17,26 @@ const TEAM_COLORS = [
 ];
 
 // ============================================================
+// FIREBASE
+// ============================================================
+
+firebase.initializeApp({
+  apiKey:            'AIzaSyBzGGIrE6-PMIXUcBt_Yw8uqMmYK73j1Gc',
+  authDomain:        'teqball-app.firebaseapp.com',
+  projectId:         'teqball-app',
+  storageBucket:     'teqball-app.firebasestorage.app',
+  messagingSenderId: '383453260526',
+  appId:             '1:383453260526:web:645fd896ff477a607fe1ff',
+});
+firebase.firestore().enablePersistence().catch(() => {});
+const DB_REF = firebase.firestore().doc('data/teqball_db');
+
+// ============================================================
 // STATE
 // ============================================================
 
-let db = loadDB();
+let db = { players: [], sessions: [] };
+let dbReady = false;
 let currentPlayers   = [];
 let currentTeams     = [];
 let currentMatches   = [];
@@ -33,17 +49,9 @@ let scheduleActive   = false;     // true while a round is in progress
 // DATABASE
 // ============================================================
 
-function loadDB() {
-  try {
-    const raw = localStorage.getItem('teqball_db');
-    if (raw) return JSON.parse(raw);
-    const oldPlayers = JSON.parse(localStorage.getItem('players') || '[]');
-    return { players: oldPlayers, sessions: [] };
-  } catch { return { players: [], sessions: [] }; }
-}
-
 function saveDB() {
-  localStorage.setItem('teqball_db', JSON.stringify(db));
+  DB_REF.set({ players: db.players, sessions: db.sessions })
+    .catch(() => showDbStatus('Fehler beim Speichern.'));
 }
 
 function exportDB() {
@@ -72,45 +80,39 @@ function showExportToast(filename) {
   toast._t = setTimeout(() => toast.classList.add('hidden'), 6000);
 }
 
+function importDBFromText(text, name) {
+  try {
+    const imported = JSON.parse(text);
+    if (!Array.isArray(imported.players) || !Array.isArray(imported.sessions)) throw new Error();
+    db = imported;
+    saveDB();
+    showDbStatus('Backup erfolgreich in Firestore gespeichert.');
+    renderKnownPlayers();
+    renderStats();
+  } catch { showDbStatus('Fehler: Ungültige oder beschädigte Datei.'); }
+}
+
 function importDB(file) {
   const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (!Array.isArray(imported.players) || !Array.isArray(imported.sessions)) throw new Error();
-      db = imported;
-      saveDB();
-      localStorage.setItem('teqball_import', JSON.stringify({ filename: file.name, ts: Date.now() }));
-      renderImportStatus();
-      showDbStatus('Datenbank erfolgreich importiert.');
-      renderKnownPlayers();
-      renderStats();
-      updateSpieltagLock();
-      updateHomeState();
-    } catch { showDbStatus('Fehler: Ungültige oder beschädigte Datei.'); }
-  };
+  reader.onload = (e) => importDBFromText(e.target.result, file.name);
   reader.readAsText(file);
 }
 
-function renderImportStatus() {
-  const el  = document.getElementById('db-quick-status');
-  const raw = localStorage.getItem('teqball_import');
-  if (!raw) { el.textContent = 'Keine Datei geladen'; el.classList.remove('loaded'); return; }
-  const { filename, ts } = JSON.parse(raw);
-  const date = new Date(ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
-  el.textContent = `${filename} · ${date}`;
-  el.classList.add('loaded');
+function updateSyncStatus(status) {
+  const dot  = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-status-text');
+  if (!dot || !text) return;
+  dot.className = `sync-dot sync-${status}`;
+  if (status === 'connected') {
+    const count = db.sessions.length;
+    text.textContent = `Verbunden · ${count} Spieltag${count !== 1 ? 'e' : ''}`;
+  } else if (status === 'error') {
+    text.textContent = 'Verbindungsfehler';
+  } else {
+    text.textContent = 'Verbinde...';
+  }
 }
 
-function initCloudLinks() {
-  if (!CLOUD_URL) return;
-  ['cloud-link-spieltag', 'cloud-link-stats'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.href = CLOUD_URL; el.classList.remove('hidden'); }
-  });
-  const lockedLink = document.getElementById('locked-cloud-link');
-  if (lockedLink) lockedLink.href = CLOUD_URL;
-}
 
 function showDbStatus(msg) {
   const el = document.getElementById('db-status');
@@ -122,27 +124,10 @@ function showDbStatus(msg) {
 // DB LOCK / HOME STATE
 // ============================================================
 
-function isDbLoaded() {
-  return localStorage.getItem('teqball_import') !== null;
-}
-
-function hasActiveSession() {
-  return currentPlayers.length > 0 || currentTeams.length > 0 ||
-         currentRounds.length > 0 || scheduleActive;
-}
-
-function updateSpieltagLock() {
-  const locked = !isDbLoaded() && !hasActiveSession();
-  document.getElementById('spieltag-locked-overlay').classList.toggle('hidden', !locked);
-}
-
 function updateHomeState() {
-  const loaded   = isDbLoaded();
   const startBtn = document.getElementById('start-game-btn');
-  const hint     = document.getElementById('no-db-hint');
-  startBtn.disabled    = !loaded;
-  startBtn.style.opacity = loaded ? '' : '0.4';
-  hint.classList.toggle('hidden', loaded);
+  startBtn.disabled      = !dbReady;
+  startBtn.style.opacity = dbReady ? '' : '0.4';
 }
 
 // ============================================================
@@ -158,8 +143,7 @@ function switchTab(tabId) {
   );
   if (tabId === 'statistiken') renderStats();
   if (tabId === 'historie')    renderHistorie();
-  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); renderImportStatus(); }
-  if (tabId === 'spieltag')    updateSpieltagLock();
+  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); }
 }
 
 // ============================================================
@@ -747,7 +731,6 @@ function performEndSession() {
   if (savedRounds > 0) {
     db.sessions.push({ id: Date.now(), date: new Date().toISOString().slice(0, 10), rounds: currentRounds });
     saveDB();
-    localStorage.removeItem('teqball_import');
   }
   resetGameState();
   switchTab('home');
@@ -828,12 +811,6 @@ function startGame() {
       'Neuen Spieltag starten? Der aktuelle, nicht gespeicherte Spieltag wird verworfen.',
       doStart
     );
-    return;
-  }
-
-  // If no DB ever imported: warn
-  if (!localStorage.getItem('teqball_import') && db.sessions.length === 0 && db.players.length === 0) {
-    document.getElementById('no-db-overlay').classList.remove('hidden');
     return;
   }
 
@@ -1076,20 +1053,6 @@ document.getElementById('confirm-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeConfirm();
 });
 
-// No-DB warning
-document.getElementById('no-db-continue').addEventListener('click', () => {
-  document.getElementById('no-db-overlay').classList.add('hidden');
-  resetGameState();
-  switchTab('spieltag');
-});
-document.getElementById('import-input-home').addEventListener('change', e => {
-  if (!e.target.files[0]) return;
-  importDB(e.target.files[0]);
-  document.getElementById('no-db-overlay').classList.add('hidden');
-  setTimeout(() => { resetGameState(); switchTab('spieltag'); }, 400);
-  e.target.value = '';
-});
-
 // Home
 document.getElementById('start-game-btn').addEventListener('click', startGame);
 document.getElementById('btn-resume-session').addEventListener('click', () => switchTab('spieltag'));
@@ -1134,25 +1097,31 @@ document.getElementById('session-saved-overlay').addEventListener('click', e => 
 
 // Database
 document.getElementById('export-btn').addEventListener('click', exportDB);
-document.getElementById('import-input-quick').addEventListener('change', e => {
+document.getElementById('import-input-backup').addEventListener('change', e => {
   if (e.target.files[0]) { importDB(e.target.files[0]); e.target.value = ''; }
 });
-
-// Spieltag locked overlay
-document.getElementById('locked-goto-home').addEventListener('click', () => {
-  document.getElementById('spieltag-locked-overlay').classList.add('hidden');
-  switchTab('home');
-});
-
-
 
 // ============================================================
 // INIT
 // ============================================================
 
-renderKnownPlayers();
-renderStats();
-renderImportStatus();
-initCloudLinks();
-updateHomeBanner();
+updateSyncStatus('loading');
 updateHomeState();
+updateHomeBanner();
+
+DB_REF.onSnapshot(snapshot => {
+  if (snapshot.exists()) {
+    const data = snapshot.data();
+    db = { players: data.players || [], sessions: data.sessions || [] };
+  } else {
+    db = { players: [], sessions: [] };
+  }
+  dbReady = true;
+  updateSyncStatus('connected');
+  renderKnownPlayers();
+  renderStats();
+  updateHomeState();
+  updateHomeBanner();
+}, () => {
+  updateSyncStatus('error');
+});
