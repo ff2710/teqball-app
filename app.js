@@ -67,16 +67,15 @@ async function loadDB() {
   updateSyncStatus('loading');
   updateHomeState();
   try {
-    const res = await fetch(GITHUB_API, {
-      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' },
-    });
+    const res = await fetch(
+      `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${GITHUB_FILE}?t=${Date.now()}`
+    );
     if (res.status === 404) {
       db = { players: [], sessions: [] };
     } else if (!res.ok) {
       throw new Error();
     } else {
-      const data = await res.json();
-      db = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))));
+      db = await res.json();
     }
     dbReady = true;
     updateSyncStatus('connected');
