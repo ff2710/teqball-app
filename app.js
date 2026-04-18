@@ -849,14 +849,18 @@ function updateSectionVisibility() {
 
 function startSessionPath() {
   document.getElementById('section-path-chooser').classList.add('hidden');
-  updateSectionVisibility();
+  document.getElementById('section-players').classList.remove('hidden');
+  document.getElementById('section-teams').classList.remove('hidden');
+  document.getElementById('section-schedule').classList.add('hidden');
   document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
 function startQuickPath() {
   quickMode = true;
   document.getElementById('section-path-chooser').classList.add('hidden');
-  updateSectionVisibility();
+  document.getElementById('section-players').classList.remove('hidden');
+  document.getElementById('section-teams').classList.remove('hidden');
+  document.getElementById('section-schedule').classList.add('hidden');
   document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
