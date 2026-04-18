@@ -82,15 +82,19 @@ async function loadDB() {
 function updateSyncStatus(status) {
   const dot  = document.getElementById('sync-dot');
   const text = document.getElementById('sync-status-text');
+  const msg  = document.getElementById('sync-loading-msg');
   if (!dot || !text) return;
   dot.className = `sync-dot sync-${status}`;
   if (status === 'connected') {
     const count = db.sessions.length;
     text.textContent = `Verbunden · ${count} Spieltag${count !== 1 ? 'e' : ''}`;
+    if (msg) msg.classList.add('hidden');
   } else if (status === 'error') {
     text.textContent = 'Ladefehler — Seite neu laden';
+    if (msg) msg.classList.add('hidden');
   } else {
     text.textContent = 'Lade...';
+    if (msg) msg.classList.remove('hidden');
   }
 }
 
@@ -345,10 +349,16 @@ function teamBadge(teamIndex, teams, helperName = null) {
   span.style.backgroundColor = hexToRgba(color, 0.13);
   span.style.color = color;
   span.style.border = `1.5px solid ${hexToRgba(color, 0.3)}`;
-  const membersText = helperName
-    ? `${teams[teamIndex][0]} + ${helperName}`
-    : teams[teamIndex].join(' & ');
-  span.textContent = `Team ${teamIndex + 1} (${membersText})`;
+  if (helperName) {
+    span.appendChild(document.createTextNode(`Team ${teamIndex + 1} (${teams[teamIndex][0]} + `));
+    const helperEl = document.createElement('span');
+    helperEl.className = 'helper-name';
+    helperEl.textContent = helperName;
+    span.appendChild(helperEl);
+    span.appendChild(document.createTextNode(')'));
+  } else {
+    span.textContent = `Team ${teamIndex + 1} (${teams[teamIndex].join(' & ')})`;
+  }
   return span;
 }
 
@@ -702,14 +712,21 @@ function startNewRoundNewTeams() {
 }
 
 function endSession() {
+  const saved = currentRounds.length;
   if (scheduleActive) {
-    const msg = currentRounds.length > 0
-      ? `Spieltag beenden? Die aktuelle Runde wird verworfen. ${currentRounds.length} abgeschlossene Runde(n) werden gespeichert.`
-      : 'Spieltag beenden? Die aktuelle Runde wurde nicht abgeschlossen und wird verworfen.';
-    showConfirm(msg, performEndSession, 'Ja, verwerfen');
-    return;
+    const msg = saved > 0
+      ? `Runde abbrechen? Die laufende Runde wird verworfen — ${saved} abgeschlossene Runde(n) werden gespeichert.`
+      : 'Runde abbrechen? Nichts wird gespeichert.';
+    showConfirm(msg, performEndSession, 'Ja, abbrechen');
+  } else if (saved > 0) {
+    showConfirm(
+      `Neue Runde abbrechen? Spieltag mit ${saved} Runde(n) wird gespeichert.`,
+      performEndSession,
+      'Ja, beenden'
+    );
+  } else {
+    performEndSession();
   }
-  performEndSession();
 }
 
 function performEndSession() {
@@ -1065,7 +1082,7 @@ document.getElementById('btn-new-round-new').addEventListener('click', () => {
   document.getElementById('post-round-overlay').classList.add('hidden');
   startNewRoundNewTeams();
 });
-document.getElementById('btn-end-session').addEventListener('click', endSession);
+document.getElementById('btn-end-session').addEventListener('click', performEndSession);
 document.getElementById('btn-end-session-indicator').addEventListener('click', endSession);
 
 // Session saved modal
