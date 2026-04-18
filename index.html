@@ -40,10 +40,10 @@
           <button id="help-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Kurzanleitung</h2>
           <ul>
-            <li><strong>Grüner Punkt abwarten</strong> — Daten werden beim Öffnen automatisch mit allen Geräten synchronisiert.</li>
-            <li><strong>Spieler als Chip antippen</strong> — nicht neu eintippen! Nur so stimmen die Langzeitstatistiken.</li>
-            <li><strong>Runde abschließen:</strong> Erst alle Ergebnisse korrekt eintragen, dann „Runde beenden &amp; speichern".</li>
-            <li><strong>Spieltag beenden:</strong> Speichert alle abgeschlossenen Runden in der Cloud. Laufende Runden werden verworfen.</li>
+            <li><strong>Grüner Punkt</strong> = Daten synchronisiert. Warten bis er grün ist, bevor ein Spieltag gestartet wird.</li>
+            <li><strong>Bekannte Spieler antippen</strong> — nicht neu eintippen! Nur Chips verknüpfen Namen korrekt mit der Langzeitstatistik.</li>
+            <li><strong>Gültige Ergebnisse:</strong> 11:x (x ≤ 9) oder Deuce — z.&thinsp;B. 12:10, 13:11 …</li>
+            <li><strong>Schnelle Runde</strong> — nichts wird gespeichert, Statistiken bleiben unberührt.</li>
           </ul>
         </div>
       </div>
@@ -102,7 +102,7 @@
         <div class="help-modal">
           <button id="quick-info-close" class="help-close" aria-label="Schließen">×</button>
           <h2>⚡ Schnelle Runde</h2>
-          <p class="info-ranking">Alle Spielfunktionen stehen zur Verfügung — Teams, Spielplan, Livetabelle. Die Ergebnisse fließen aber nicht in die Langzeitstatistik ein und werden nicht gespeichert.</p>
+          <p class="info-ranking">Teams, Spielplan und Livetabelle funktionieren wie gewohnt — aber nichts wird gespeichert und die Langzeitstatistiken bleiben unberührt.</p>
         </div>
       </div>
 
@@ -111,13 +111,11 @@
         <div class="help-modal">
           <button id="stats-info-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Spielerstatistiken</h2>
-          <p class="info-ranking">Ranking: Sortiert nach Siegquote — bei Gleichstand nach Anzahl Siege.</p>
+          <p class="info-ranking">Zählt alle gespeicherten Spieltage. Sortierung per Dropdown umschaltbar.</p>
           <ul class="info-list">
             <li><strong>Sp</strong> Gespielte Matches</li>
-            <li><strong>S</strong> Siege</li>
-            <li><strong>N</strong> Niederlagen</li>
-            <li><strong>Quote</strong> Siegquote (S / Sp)</li>
-            <li><strong>Diff</strong> Punktedifferenz (erzielt − kassiert)</li>
+            <li><strong>Quote</strong> Siege ÷ Spiele</li>
+            <li><strong>Diff</strong> Erzielte − kassierte Punkte</li>
           </ul>
         </div>
       </div>
@@ -127,13 +125,9 @@
         <div class="help-modal">
           <button id="standings-info-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Livetabelle</h2>
-          <p class="info-ranking">Ranking: Meiste Siege gewinnt.<br>Bei Gleichstand: 1. Direkter Vergleich · 2. Punktedifferenz.</p>
+          <p class="info-ranking">Meiste Siege gewinnt. Gleichstand: erst direkter Vergleich, dann Punktedifferenz.</p>
           <ul class="info-list">
-            <li><strong>S</strong> Siege</li>
-            <li><strong>N</strong> Niederlagen</li>
-            <li><strong>+</strong> Erzielte Punkte</li>
-            <li><strong>−</strong> Kassierte Punkte</li>
-            <li><strong>Diff</strong> Punktedifferenz</li>
+            <li><strong>Diff</strong> Erzielte − kassierte Punkte</li>
           </ul>
         </div>
       </div>

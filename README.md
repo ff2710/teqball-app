@@ -1,91 +1,105 @@
-# Teqball Teamgenerator
+# Teqball App
 
-Eine mobile Web-App zum Verwalten von Teqball-Spieltagen in der Freundesgruppe — mit automatischer Teamauslosung, Spielplan, Livetabelle, Mehrrunden-Support und Langzeitstatistiken.
+Mobile Web-App für Teqball-Spieltage in der Freundesgruppe — automatische Teamauslosung, Spielplan, Livetabelle, Mehrrunden-Support und Langzeitstatistiken mit Cloud-Sync.
 
 🌐 **Live:** https://ff2710.github.io/teqball-app/
 
 ---
 
-## So funktioniert ein Spieltag
+## Features
 
-### 1. Datenbank importieren (Home-Tab)
-- Die aktuellste `.json`-Datei aus dem Gruppen-Chat laden (ggf. zuerst aus der Cloud herunterladen)
-- Auf **Importieren** drücken — die Kachel zeigt danach Dateiname und Datum des letzten Imports
-- Ohne Import startet man mit einer leeren Datenbank — bisherige Langzeitstatistiken werden nicht berücksichtigt
+- **Cloud-Sync** — alle Daten werden automatisch über JSONBin.io synchronisiert; jedes Gerät sieht denselben Stand, ohne dass Dateien ausgetauscht werden müssen
+- **Spieltag** — Spieler auswählen, Teams generieren, Spielplan erstellen, Ergebnisse eintragen, Livetabelle beobachten; beliebig viele Runden pro Spieltag
+- **Schnelle Runde** — voller Spielbetrieb ohne Speichern; Statistiken bleiben unberührt
+- **Smarte Teamauslosung** — bereits gespielte Paarungen des aktuellen Spieltags werden automatisch vermieden; nach Ausschöpfung aller Kombinationen wird zurückgesetzt
+- **Aushilfe-Regel** — bei ungerader Spielerzahl bekommt ein Team nur einen Spieler; im Spielplan springt automatisch ein Spieler aus einem pausierenden Team als Aushilfe ein
+- **Spielerstatistiken** — Siege, Quote, Punktedifferenz über alle gespeicherten Spieltage; Sortierung umschaltbar (Quote / Siege)
+- **Beste Duos** — welche 2er-Konstellation hat die meisten Siege / die beste Quote?
+- **Spieltag-Historie** — alle gespeicherten Spieltage mit Rundenergebnissen auf einen Blick
 
-### 2. Spieltag starten
-- Auf **Spieltag starten** drücken
-- Falls keine Datenbank geladen: kurze Warnung mit Option zum Importieren oder Weiterfahren ohne DB
-- → Weiterleitung zum Tab **Spieltag**
+---
 
-### 3. Spieler hinzufügen
-- Wer schon mal gespielt hat, erscheint als Chip — **diesen antippen** statt neu eintippen! Nur so werden die Langzeitstatistiken korrekt zugeordnet.
-- Spieler können per **×** wieder entfernt werden
+## Ablauf
 
-### 4. Teams generieren
-- Klick auf **Teams generieren** → Spieler werden in 2er-Teams aufgeteilt
-- Ab der zweiten Runde werden bereits gespielte Paarungen dieses Spieltags automatisch vermieden
-- Bei **ungerader Spielerzahl** bekommt ein Spieler ein Allein-Team (mit automatischer Aushilfe im Spielplan)
-- Solange noch kein Spielplan erstellt wurde, kann jederzeit neu generiert werden
-- Wenn bereits ein aktiver Spielplan läuft: **Bestätigungsdialog** zum Zurücksetzen
+### Home
+Beim Öffnen verbindet sich die App automatisch mit der Cloud. Erst wenn der Punkt **grün** ist, sind die Daten synchronisiert — dann erst Spieltag starten.
 
-### 5. Spielplan generieren
-- Klick auf **Spielplan generieren** → jedes Team spielt gegen jedes andere genau einmal
-- Die Reihenfolge ist so optimiert, dass kein Team zweimal hintereinander spielt
-- Wenn bereits ein aktiver Spielplan läuft: **Bestätigungsdialog** zum Zurücksetzen
+Ein laufender Spieltag wird als Banner angezeigt; über „Weiterspielen →" gelangt man direkt zurück.
 
-#### Aushilfe-Regel (bei Einzel-Team)
-Wenn ein Allein-Spieler spielt, springt automatisch ein zufälliger Spieler aus einem pausierenden Team als Aushilfe ein. Dieser wechselt bei jedem Spiel.
+### Spieltag starten
+Im Tab **Spieltag** zwischen zwei Modi wählen:
 
-### 6. Ergebnisse eintragen
-- Unter jedem Spiel gibt es zwei Zahlenfelder für das Ergebnis
-- Die **Livetabelle** aktualisiert sich sofort
+| Modus | Beschreibung |
+|---|---|
+| **Spieltag starten** | Runden werden gespeichert, Langzeitstatistik wird aktualisiert |
+| **⚡ Schnelle Runde** | Voller Spielbetrieb, aber nichts wird gespeichert |
 
-### 7. Runde beenden
-- Klick auf **Runde beenden** → die Runde wird intern gespeichert (noch nicht in der Datenbank!)
-- Die Livetabelle zeigt immer nur die aktuelle Runde
+### Spieler
+Bereits bekannte Spieler erscheinen als Chips — **antippen statt neu eintippen**. Nur über Chips werden Namen korrekt mit der Langzeitstatistik verknüpft.
 
-### 8. Neue Runde oder Spieltag beenden
-Nach jeder Runde erscheinen drei Optionen:
+Neue Namen können über das Textfeld hinzugefügt werden; sie werden automatisch in die Datenbank übernommen.
 
-- **Gleiche Teams** → selbe Spielerpaare, neuer zufälliger Spielplan, zurückgesetzte Livetabelle
-- **Neu mischen** → gleiche Spieler (vorauswählbar/änderbar), neue zufällige Teams — bereits gespielte Paarungen dieses Spieltags werden dabei vermieden. Wenn alle möglichen Paarungen erschöpft sind, wird automatisch zurückgesetzt.
-- **Spieltag beenden** → Bestätigungsdialog, danach werden alle Runden in der Datenbank gespeichert → Weiterleitung zu **Statistiken**
+### Teams generieren
+Klick auf **Teams generieren** → zufällige 2er-Teams. Bei ungerader Spielerzahl entsteht ein Einzel-Team mit automatischer Aushilfe.
 
-### 9. Exportieren
-- Im Tab **Statistiken** auf **Exportieren** → lädt eine `.json`-Datei mit Datum und Uhrzeit im Namen (z. B. `teqball_2026-04-17_2130.json`)
-- Datei in die Gruppe schicken, damit alle den gleichen Stand haben
+Die Auslosung vermeidet Wiederholungen: Paarungen, die im aktuellen Spieltag schon gespielt wurden, werden übersprungen. Sind alle Kombinationen erschöpft, wird der Verlauf zurückgesetzt.
+
+Teams können jederzeit neu generiert werden, solange noch kein Spielplan läuft (danach Bestätigungsdialog).
+
+### Spielplan
+Klick auf **Spielplan generieren** → jedes Team spielt einmal gegen jedes andere. Die Reihenfolge verhindert, dass dasselbe Team zweimal hintereinander antritt.
+
+Bei aktiver Runde werden Spieler- und Teamkarten ausgeblendet — nur Spielplan, Livetabelle und der Beenden-Button sind sichtbar.
+
+### Ergebnisse & Livetabelle
+Ergebnisse direkt in die Felder eintragen. Die **Livetabelle** aktualisiert sich sofort.
+
+**Gültige Ergebnisse:** 11:x mit x ≤ 9, oder Deuce (12:10, 13:11, …). Ungültige Eingaben werden markiert und blockieren das Rundenende.
+
+### Runde beenden
+Sobald alle Ergebnisse eingetragen und gültig sind, auf **✓ Runde beenden** klicken. Es erscheint ein Modal mit:
+
+- Rundensieger und Abschlussrangliste
+- **Gleiche Teams** — selbe Paarungen, neuer Spielplan
+- **Neue Teams** — gleiche Spieler, neue Auslosung
+- **Spieltag beenden** — alle Runden werden in der Cloud gespeichert
+
+### Spieltag beenden
+Beim Beenden wird der komplette Spieltag (alle Runden) in der Cloud gespeichert und steht sofort auf allen Geräten zur Verfügung. Laufende, noch nicht abgeschlossene Runden werden verworfen.
 
 ---
 
 ## Statistiken
 
-Im Tab **Statistiken** werden alle gespeicherten Spieltage ausgewertet:
+### Spielerstatistiken
+Zählt alle gespeicherten Spieltage. Sortierung per Dropdown umschaltbar zwischen **Quote** (Standard) und **Siege**.
 
 | Spalte | Bedeutung |
-|--------|-----------|
-| ST | Anzahl Spieltage |
-| Sp | Anzahl Einzelspiele |
-| S | Siege |
-| N | Niederlagen |
-| Quote | Siegquote in % |
-| Diff | Punktedifferenz gesamt |
+|---|---|
+| Sp | Gespielte Matches |
+| S / N | Siege / Niederlagen |
+| Quote | Siege ÷ Spiele |
+| Diff | Erzielte − kassierte Punkte |
 
-Die Tabelle ist nach Siegquote sortiert.
+### Beste Duos
+Welche 2er-Konstellation spielt am besten zusammen?
 
----
-
-## Datenbank (Export / Import)
-
-- **Importieren**: auf der Home-Seite oder im Tab „Statistiken"
-- **Exportieren**: im Tab „Statistiken"; Dateiname enthält automatisch Datum + Uhrzeit
-
-> **Tipp:** Nach jedem Spieltag exportieren und die Datei in die Gruppe schicken, damit alle den gleichen Stand haben.
+- **Meiste Siege** — Top 3 nach absoluten Siegen
+- **Beste Quote** — Top 3 nach Siegquote (mind. 3 gemeinsame Spiele nötig)
 
 ---
 
-## Hinweise
+## Livetabelle — Rangfolge
 
-- Die App funktioniert komplett **ohne Internet** (nach dem ersten Laden)
-- Daten werden lokal im Browser gespeichert — beim Löschen des Browser-Caches gehen sie verloren → **Exportieren nicht vergessen!**
-- Optimiert für **Mobilgeräte**
+1. Meiste Siege
+2. Direkter Vergleich
+3. Punktedifferenz
+
+---
+
+## Technik
+
+- Vanilla JS / HTML / CSS — kein Framework, kein Build-Step
+- [JSONBin.io](https://jsonbin.io) als Cloud-Datenbank (REST API)
+- Hosting via GitHub Pages
+- Optimiert für Mobilgeräte; funktioniert im Browser ohne Installation

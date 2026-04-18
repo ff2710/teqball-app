@@ -843,24 +843,20 @@ function updateSectionVisibility() {
   const pathChooser = document.getElementById('section-path-chooser');
   if (!pathChooser.classList.contains('hidden')) return;
   document.getElementById('section-players').classList.toggle('hidden', scheduleActive);
-  document.getElementById('section-teams').classList.toggle('hidden', scheduleActive || currentTeams.length === 0);
+  document.getElementById('section-teams').classList.toggle('hidden', scheduleActive);
   document.getElementById('section-schedule').classList.toggle('hidden', currentTeams.length === 0);
 }
 
 function startSessionPath() {
   document.getElementById('section-path-chooser').classList.add('hidden');
-  document.getElementById('section-players').classList.remove('hidden');
-  document.getElementById('section-teams').classList.add('hidden');
-  document.getElementById('section-schedule').classList.add('hidden');
+  updateSectionVisibility();
   document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
 function startQuickPath() {
   quickMode = true;
   document.getElementById('section-path-chooser').classList.add('hidden');
-  document.getElementById('section-players').classList.remove('hidden');
-  document.getElementById('section-teams').classList.add('hidden');
-  document.getElementById('section-schedule').classList.add('hidden');
+  updateSectionVisibility();
   document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
