@@ -1098,6 +1098,9 @@ function renderTopTeams() {
 
   container.innerHTML = '';
 
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  const ROW_COLORS = ['top-team-row--gold', 'top-team-row--silver', 'top-team-row--bronze'];
+
   function makeSection(label, items, mainVal, subVal) {
     const section = document.createElement('div');
     section.className = 'top-teams-section';
@@ -1114,9 +1117,9 @@ function renderTopTeams() {
     } else {
       items.forEach((p, i) => {
         const row = document.createElement('div');
-        row.className = 'top-team-row';
+        row.className = `top-team-row ${ROW_COLORS[i] || ''}`;
         row.innerHTML = `
-          <span class="top-team-rank">${i + 1}</span>
+          <span class="top-team-rank">${MEDALS[i]}</span>
           <span class="top-team-names">${p.names.join(' & ')}</span>
           <span class="top-team-main">${mainVal(p)}</span>
           <span class="top-team-sub">${subVal(p)}</span>`;
@@ -1153,13 +1156,15 @@ function renderStats() {
   const table   = document.createElement('table');
   table.className = 'stats-table';
   table.innerHTML = `<thead><tr>
-    <th>Spieler</th><th title="Spiele">Sp</th>
+    <th class="rank-th"></th><th>Spieler</th><th title="Spiele">Sp</th>
     <th>S</th><th>N</th><th>Quote</th><th>Diff</th>
   </tr></thead>`;
   const tbody = document.createElement('tbody');
-  players.forEach(p => {
+  players.forEach((p, i) => {
+    const rankDisplay = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : String(i + 1);
     const tr = document.createElement('tr');
     tr.innerHTML = `
+      <td class="stat-rank">${rankDisplay}</td>
       <td class="player-name">${p.name}</td>
       <td class="stat-cell muted">${p.matches}</td>
       <td class="stat-cell win">${p.wins}</td>

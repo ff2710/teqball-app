@@ -1374,3 +1374,49 @@ input[type="number"]:focus {
   min-width: 40px;
   text-align: right;
 }
+
+/* ── Top team row medal colors ── */
+.top-team-row {
+  border-bottom: none;
+  padding: 7px 10px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+}
+.top-team-row:last-child { margin-bottom: 0; }
+.top-team-row--gold   { background: #fefce8; }
+.top-team-row--silver { background: #f1f5f9; }
+.top-team-row--bronze { background: #fff7ed; }
+
+/* ── h2 inline icon ── */
+.h2-icon {
+  width: 11px;
+  height: 11px;
+  vertical-align: middle;
+  margin-left: 5px;
+  color: #cbd5e1;
+  display: inline-block;
+  position: relative;
+  top: -1px;
+}
+
+/* ── Sort icon next to dropdown ── */
+.sort-icon {
+  width: 13px;
+  height: 13px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* ── Stats table: rank column + tighter padding ── */
+.rank-th {
+  width: 22px;
+  padding-left: 0 !important;
+  padding-right: 2px !important;
+}
+.stat-rank {
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 9px 2px 9px 0 !important;
+}
+.stats-table th { padding: 6px 4px; }
+.stats-table td { padding: 9px 4px; }
