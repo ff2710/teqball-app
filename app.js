@@ -1092,53 +1092,38 @@ function renderTopTeams() {
     container.innerHTML = '<p class="message">Noch keine 2er-Teams gespielt.</p>';
     return;
   }
-  const byWins = [...pairs].sort((a, b) => b.wins - a.wins || b.winRate - a.winRate).slice(0, 3);
-  const byRate = [...pairs].filter(p => p.matches >= 3)
-    .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins).slice(0, 3);
 
-  container.innerHTML = '';
+  const sortKey = document.getElementById('duos-sort-select')?.value || 'wins';
+  const sorted = [...pairs].sort(
+    sortKey === 'wins'
+      ? (a, b) => b.wins - a.wins || b.winRate - a.winRate
+      : (a, b) => b.winRate - a.winRate || b.wins - a.wins
+  ).slice(0, 3);
 
   const MEDALS = ['🥇', '🥈', '🥉'];
-  const ROW_COLORS = ['top-team-row--gold', 'top-team-row--silver', 'top-team-row--bronze'];
+  const ROW_COLORS = ['duo-gold', 'duo-silver', 'duo-bronze'];
 
-  function makeSection(label, items, mainVal, subVal) {
-    const section = document.createElement('div');
-    section.className = 'top-teams-section';
-    const heading = document.createElement('p');
-    heading.className = 'top-teams-label';
-    heading.textContent = label;
-    section.appendChild(heading);
-    if (items.length === 0) {
-      const msg = document.createElement('p');
-      msg.className = 'message';
-      msg.style.fontSize = '0.78rem';
-      msg.textContent = 'Mind. 3 Spiele pro Duo nötig.';
-      section.appendChild(msg);
-    } else {
-      items.forEach((p, i) => {
-        const row = document.createElement('div');
-        row.className = `top-team-row ${ROW_COLORS[i] || ''}`;
-        row.innerHTML = `
-          <span class="top-team-rank">${MEDALS[i]}</span>
-          <span class="top-team-names">${p.names.join(' & ')}</span>
-          <span class="top-team-main">${mainVal(p)}</span>
-          <span class="top-team-sub">${subVal(p)}</span>`;
-        section.appendChild(row);
-      });
-    }
-    return section;
-  }
-
-  container.appendChild(makeSection(
-    'Meiste Siege', byWins,
-    p => `${p.wins} S`,
-    p => `${p.winRate}%`
-  ));
-  container.appendChild(makeSection(
-    'Beste Quote', byRate,
-    p => `${p.winRate}%`,
-    p => `${p.wins}/${p.matches} S`
-  ));
+  const table = document.createElement('table');
+  table.className = 'stats-table duos-table';
+  table.innerHTML = `<thead><tr>
+    <th class="rank-th"></th><th>Duo</th><th title="Spiele">Sp</th>
+    <th>S</th><th>Quote</th>
+  </tr></thead>`;
+  const tbody = document.createElement('tbody');
+  sorted.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    tr.className = ROW_COLORS[i] || '';
+    tr.innerHTML = `
+      <td class="stat-rank">${MEDALS[i]}</td>
+      <td class="player-name">${p.names.join(' & ')}</td>
+      <td class="stat-cell muted">${p.matches}</td>
+      <td class="stat-cell win">${p.wins}</td>
+      <td class="stat-cell">${p.winRate}%</td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  container.innerHTML = '';
+  container.appendChild(table);
 }
 
 function renderStats() {
@@ -1272,6 +1257,7 @@ document.getElementById('session-saved-overlay').addEventListener('click', e => 
 
 // Stats sort
 document.getElementById('stats-sort-select').addEventListener('change', renderStats);
+document.getElementById('duos-sort-select').addEventListener('change', renderTopTeams);
 
 // Info overlays
 document.getElementById('stats-info-btn').addEventListener('click', () =>

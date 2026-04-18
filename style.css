@@ -1375,25 +1375,13 @@ input[type="number"]:focus {
   text-align: right;
 }
 
-/* ── Top team row medal colors ── */
-.top-team-row {
-  border-bottom: none;
-  padding: 7px 10px;
-  margin-bottom: 4px;
-  border-radius: 10px;
-}
-.top-team-row:last-child { margin-bottom: 0; }
-.top-team-row--gold   { background: #fefce8; }
-.top-team-row--silver { background: #f1f5f9; }
-.top-team-row--bronze { background: #fff7ed; }
-
 /* ── h2 inline icon ── */
 .h2-icon {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
   vertical-align: middle;
   margin-left: 5px;
-  color: #cbd5e1;
+  color: #64748b;
   display: inline-block;
   position: relative;
   top: -1px;
@@ -1406,6 +1394,22 @@ input[type="number"]:focus {
   color: #94a3b8;
   flex-shrink: 0;
 }
+
+/* ── Beste Duos table ── */
+#team-pairs-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.duos-table { min-width: 260px; }
+.duos-table tr.duo-gold   td { background: #fefce8; }
+.duos-table tr.duo-silver td { background: #f1f5f9; }
+.duos-table tr.duo-bronze td { background: #fff7ed; }
+.duos-table tr.duo-gold   td:first-child { border-radius: 8px 0 0 8px; }
+.duos-table tr.duo-gold   td:last-child  { border-radius: 0 8px 8px 0; }
+.duos-table tr.duo-silver td:first-child { border-radius: 8px 0 0 8px; }
+.duos-table tr.duo-silver td:last-child  { border-radius: 0 8px 8px 0; }
+.duos-table tr.duo-bronze td:first-child { border-radius: 8px 0 0 8px; }
+.duos-table tr.duo-bronze td:last-child  { border-radius: 0 8px 8px 0; }
 
 /* ── Stats table: rank column + tighter padding ── */
 .rank-th {
