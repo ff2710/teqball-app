@@ -118,14 +118,6 @@ function updateHomeState() {
 
 function switchTab(tabId) {
   if (!dbReady && tabId !== 'home') return;
-  const onSpielTag = document.getElementById('tab-spieltag').classList.contains('active');
-  if (onSpielTag && tabId !== 'spieltag' && (scheduleActive || currentRounds.length > 0)) {
-    const msg = currentRounds.length > 0
-      ? `Tab verlassen? ${currentRounds.length} abgeschlossene Runde(n) wurden noch nicht gespeichert.`
-      : 'Tab verlassen? Die laufende Runde wird verworfen.';
-    showConfirm(msg, () => doSwitchTab(tabId), 'Verlassen');
-    return;
-  }
   doSwitchTab(tabId);
 }
 
@@ -620,7 +612,7 @@ function endRound() {
     return;
   }
   if (invalid.length > 0) {
-    showEndRoundMsg(`${invalid.length} ungültige${invalid.length > 1 ? '' : 's'} Ergebnis${invalid.length > 1 ? 'se' : ''} — Sieger braucht 11 Punkte mit 2er-Abstand (z. B. 12:10 statt 11:10).`);
+    showEndRoundMsg(`${invalid.length} ungültige${invalid.length > 1 ? '' : 's'} Ergebnis${invalid.length > 1 ? 'se' : ''}.`);
     return;
   }
   // Record pairings used this round
@@ -991,7 +983,7 @@ function renderStats() {
   const table   = document.createElement('table');
   table.className = 'stats-table';
   table.innerHTML = `<thead><tr>
-    <th>Spieler</th><th title="Spieltage">ST</th><th title="Spiele">Sp</th>
+    <th>Spieler</th><th title="Spiele">Sp</th>
     <th>S</th><th>N</th><th>Quote</th><th>Diff</th>
   </tr></thead>`;
   const tbody = document.createElement('tbody');
@@ -999,7 +991,6 @@ function renderStats() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="player-name">${p.name}</td>
-      <td class="stat-cell muted">${p.sessions}</td>
       <td class="stat-cell muted">${p.matches}</td>
       <td class="stat-cell win">${p.wins}</td>
       <td class="stat-cell loss">${p.losses}</td>
@@ -1087,6 +1078,26 @@ document.getElementById('session-saved-dismiss').addEventListener('click', () =>
 document.getElementById('session-saved-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget)
     document.getElementById('session-saved-overlay').classList.add('hidden');
+});
+
+// Info overlays
+document.getElementById('stats-info-btn').addEventListener('click', () =>
+  document.getElementById('stats-info-overlay').classList.remove('hidden')
+);
+document.getElementById('stats-info-close').addEventListener('click', () =>
+  document.getElementById('stats-info-overlay').classList.add('hidden')
+);
+document.getElementById('stats-info-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('stats-info-overlay').classList.add('hidden');
+});
+document.getElementById('standings-info-btn').addEventListener('click', () =>
+  document.getElementById('standings-info-overlay').classList.remove('hidden')
+);
+document.getElementById('standings-info-close').addEventListener('click', () =>
+  document.getElementById('standings-info-overlay').classList.add('hidden')
+);
+document.getElementById('standings-info-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('standings-info-overlay').classList.add('hidden');
 });
 
 // ============================================================

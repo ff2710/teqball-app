@@ -85,6 +85,38 @@
         </div>
       </div>
 
+      <!-- ── STATS INFO OVERLAY ── -->
+      <div id="stats-info-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="stats-info-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>Spielerstatistiken</h2>
+          <p class="info-ranking">Ranking: Sortiert nach Siegquote — bei Gleichstand nach Anzahl Siege.</p>
+          <ul class="info-list">
+            <li><strong>Sp</strong> Gespielte Matches</li>
+            <li><strong>S</strong> Siege</li>
+            <li><strong>N</strong> Niederlagen</li>
+            <li><strong>Quote</strong> Siegquote (S / Sp)</li>
+            <li><strong>Diff</strong> Punktedifferenz (erzielt − kassiert)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── STANDINGS INFO OVERLAY ── -->
+      <div id="standings-info-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="standings-info-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>Livetabelle</h2>
+          <p class="info-ranking">Ranking: Meiste Siege gewinnt.<br>Bei Gleichstand: 1. Direkter Vergleich · 2. Punktedifferenz.</p>
+          <ul class="info-list">
+            <li><strong>S</strong> Siege</li>
+            <li><strong>N</strong> Niederlagen</li>
+            <li><strong>+</strong> Erzielte Punkte</li>
+            <li><strong>−</strong> Kassierte Punkte</li>
+            <li><strong>Diff</strong> Punktedifferenz</li>
+          </ul>
+        </div>
+      </div>
+
       <!-- ── TAB: HOME ── -->
       <div id="tab-home" class="tab-content active">
         <div class="container">
@@ -149,7 +181,10 @@
           </section>
 
           <section class="card hidden" id="section-table">
-            <h2>Livetabelle</h2>
+            <div class="section-header">
+              <h2>Livetabelle</h2>
+              <button id="standings-info-btn" class="info-btn" aria-label="Info">?</button>
+            </div>
             <div id="standings-container"></div>
           </section>
 
@@ -165,7 +200,10 @@
       <div id="tab-statistiken" class="tab-content">
         <div class="container">
           <section class="card">
-            <h2>Spielerstatistiken</h2>
+            <div class="section-header">
+              <h2>Spielerstatistiken</h2>
+              <button id="stats-info-btn" class="info-btn" aria-label="Info">?</button>
+            </div>
             <div id="stats-container">
               <p class="message">Noch keine Daten gespeichert.</p>
             </div>

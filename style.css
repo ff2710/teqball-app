@@ -184,6 +184,63 @@ body {
   cursor: default;
 }
 
+/* ── Section header with info button ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.section-header h2 { margin-bottom: 0; }
+.info-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #cbd5e1;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.info-btn:hover { border-color: #94a3b8; color: #64748b; }
+
+/* ── Info overlay content ── */
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+.info-list li {
+  display: flex;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 0.85rem;
+  color: #475569;
+  border-bottom: 1px solid #f1f5f9;
+}
+.info-list li:last-child { border-bottom: none; }
+.info-list li strong {
+  min-width: 44px;
+  color: #334155;
+  font-weight: 700;
+}
+.info-ranking {
+  font-size: 0.82rem;
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
 /* ── Tab panels ── */
 .tab-content {
   display: none;
