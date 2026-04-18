@@ -1189,3 +1189,13 @@ document.getElementById('standings-info-overlay').addEventListener('click', e =>
 updateHomeBanner();
 updateHomeState();
 loadDB();
+
+// Elevate sticky tab nav when title scrolls out of view
+const _headerEl  = document.querySelector('.app-header');
+const _tabsNavEl = document.querySelector('.tabs-nav');
+if (_headerEl && _tabsNavEl) {
+  new IntersectionObserver(
+    ([entry]) => _tabsNavEl.classList.toggle('elevated', !entry.isIntersecting),
+    { threshold: 0 }
+  ).observe(_headerEl);
+}
