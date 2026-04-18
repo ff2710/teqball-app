@@ -28,12 +28,10 @@
           <button id="help-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Kurzanleitung</h2>
           <ul>
-            <li><strong>Vor dem Spieltag:</strong> Warten bis der grüne Punkt erscheint — die App synchronisiert sich automatisch mit allen Geräten.</li>
-            <li><strong>Spieler:</strong> Bekannte Spieler als Chip antippen — nicht neu eintippen! Nur so stimmen die Langzeitstatistiken.</li>
-            <li><strong>Runde beenden:</strong> Erst wenn alle Ergebnisse eingetragen sind, auf „Runde beenden &amp; speichern" drücken.</li>
-            <li><strong>Gleiche Teams:</strong> Selbe Spielerpaare, neuer zufälliger Spielplan. <strong>Neue Teams:</strong> Spieler bleiben, werden neu zusammengewürfelt — bereits gespielte Paarungen dieses Spieltags werden dabei vermieden.</li>
-            <li><strong>Spieltag beenden:</strong> Speichert alle Runden — alle Geräte synchronisieren sich automatisch.</li>
-            <li><strong>Browser-Cache:</strong> Während des Spieltags nicht löschen — ungespeicherte Runden gehen verloren.</li>
+            <li><strong>Grüner Punkt abwarten</strong> — Daten werden beim Öffnen automatisch mit allen Geräten synchronisiert.</li>
+            <li><strong>Spieler als Chip antippen</strong> — nicht neu eintippen! Nur so stimmen die Langzeitstatistiken.</li>
+            <li><strong>Runde abschließen:</strong> Erst alle Ergebnisse korrekt eintragen, dann „Runde beenden &amp; speichern".</li>
+            <li><strong>Spieltag beenden:</strong> Speichert alle abgeschlossenen Runden in der Cloud. Laufende Runden werden verworfen.</li>
           </ul>
         </div>
       </div>
@@ -74,11 +72,7 @@
           <button id="session-saved-close" class="help-close" aria-label="Schließen">×</button>
           <p class="session-saved-title">✓ Spieltag gespeichert!</p>
           <p id="session-saved-rounds" class="confirm-msg"></p>
-          <p class="session-saved-hint">Daten wurden automatisch mit allen Geräten synchronisiert.</p>
-          <div class="confirm-actions">
-            <button id="session-saved-export" class="btn-save">Backup exportieren</button>
-            <button id="session-saved-dismiss" class="btn-secondary">Schließen</button>
-          </div>
+          <button id="session-saved-dismiss" class="btn-full btn-start">OK</button>
         </div>
       </div>
 
@@ -170,22 +164,12 @@
       <!-- ── TAB: STATISTIKEN ── -->
       <div id="tab-statistiken" class="tab-content">
         <div class="container">
-
           <section class="card">
             <h2>Spielerstatistiken</h2>
             <div id="stats-container">
               <p class="message">Noch keine Daten gespeichert.</p>
             </div>
           </section>
-
-          <section class="card">
-            <h2>Datenbank</h2>
-            <div class="db-actions">
-              <button id="export-btn">Exportieren (.json)</button>
-            </div>
-            <p id="db-status" class="message"></p>
-          </section>
-
         </div>
       </div>
 
@@ -201,12 +185,6 @@
         </div>
       </div>
 
-    </div>
-
-    <div id="export-toast" class="export-toast hidden">
-      <span>✓</span>
-      <span id="export-toast-filename" class="export-toast-filename"></span>
-      <span class="export-toast-msg">heruntergeladen</span>
     </div>
 
     <script src="app.js"></script>

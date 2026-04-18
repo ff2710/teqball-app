@@ -52,7 +52,7 @@ async function saveDB() {
     });
     if (!res.ok) throw new Error();
   } catch {
-    showDbStatus('Fehler beim Speichern.');
+    updateSyncStatus('error');
   }
 }
 
@@ -78,46 +78,6 @@ async function loadDB() {
   }
 }
 
-function exportDB() {
-  const now  = new Date();
-  const date = now.toISOString().slice(0, 10);
-  const time = now.toTimeString().slice(0, 5).replace(':', '');
-  const filename = `teqball_${date}_${time}.json`;
-  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-  showExportToast(filename);
-}
-
-function showExportToast(filename) {
-  const toast = document.getElementById('export-toast');
-  document.getElementById('export-toast-filename').textContent = filename;
-  toast.classList.remove('hidden');
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => toast.classList.add('hidden'), 4000);
-}
-
-function importDBFromText(text, name) {
-  try {
-    const imported = JSON.parse(text);
-    if (!Array.isArray(imported.players) || !Array.isArray(imported.sessions)) throw new Error();
-    db = imported;
-    saveDB();
-    showDbStatus('Backup erfolgreich auf GitHub gespeichert.');
-    renderKnownPlayers();
-    renderStats();
-  } catch { showDbStatus('Fehler: Ungültige oder beschädigte Datei.'); }
-}
-
-function importDB(file) {
-  const reader = new FileReader();
-  reader.onload = (e) => importDBFromText(e.target.result, file.name);
-  reader.readAsText(file);
-}
 
 function updateSyncStatus(status) {
   const dot  = document.getElementById('sync-dot');
@@ -135,11 +95,6 @@ function updateSyncStatus(status) {
 }
 
 
-function showDbStatus(msg) {
-  const el = document.getElementById('db-status');
-  el.textContent = msg;
-  setTimeout(() => { el.textContent = ''; }, 3500);
-}
 
 // ============================================================
 // DB LOCK / HOME STATE
@@ -149,6 +104,12 @@ function updateHomeState() {
   const startBtn = document.getElementById('start-game-btn');
   startBtn.disabled      = !dbReady;
   startBtn.style.opacity = dbReady ? '' : '0.4';
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.dataset.tab !== 'home') {
+      btn.disabled      = !dbReady;
+      btn.style.opacity = dbReady ? '' : '0.4';
+    }
+  });
 }
 
 // ============================================================
@@ -156,6 +117,19 @@ function updateHomeState() {
 // ============================================================
 
 function switchTab(tabId) {
+  if (!dbReady && tabId !== 'home') return;
+  const onSpielTag = document.getElementById('tab-spieltag').classList.contains('active');
+  if (onSpielTag && tabId !== 'spieltag' && (scheduleActive || currentRounds.length > 0)) {
+    const msg = currentRounds.length > 0
+      ? `Tab verlassen? ${currentRounds.length} abgeschlossene Runde(n) wurden noch nicht gespeichert.`
+      : 'Tab verlassen? Die laufende Runde wird verworfen.';
+    showConfirm(msg, () => doSwitchTab(tabId), 'Verlassen');
+    return;
+  }
+  doSwitchTab(tabId);
+}
+
+function doSwitchTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(btn =>
     btn.classList.toggle('active', btn.dataset.tab === tabId)
   );
@@ -762,7 +736,7 @@ function performEndSession() {
 
 function showSessionSavedModal(roundCount) {
   document.getElementById('session-saved-rounds').textContent =
-    `${roundCount} Runde${roundCount !== 1 ? 'n' : ''} wurden in der Datenbank gespeichert.`;
+    `${roundCount} Runde${roundCount !== 1 ? 'n' : ''} gespeichert und synchronisiert.`;
   document.getElementById('session-saved-overlay').classList.remove('hidden');
 }
 
@@ -1104,7 +1078,6 @@ document.getElementById('btn-end-session').addEventListener('click', endSession)
 document.getElementById('btn-end-session-indicator').addEventListener('click', endSession);
 
 // Session saved modal
-document.getElementById('session-saved-export').addEventListener('click', exportDB);
 document.getElementById('session-saved-close').addEventListener('click', () =>
   document.getElementById('session-saved-overlay').classList.add('hidden')
 );
@@ -1116,11 +1089,10 @@ document.getElementById('session-saved-overlay').addEventListener('click', e => 
     document.getElementById('session-saved-overlay').classList.add('hidden');
 });
 
-// Database
-document.getElementById('export-btn').addEventListener('click', exportDB);
 // ============================================================
 // INIT
 // ============================================================
 
 updateHomeBanner();
+updateHomeState();
 loadDB();
