@@ -2,9 +2,6 @@
 // CONSTANTS
 // ============================================================
 
-// Set to your shared cloud folder URL to enable cloud links (e.g. Google Drive, Dropbox)
-const CLOUD_URL = 'https://www.dropbox.com/scl/fo/qxazrprybzjbs02nb18dn/AFP9C4-QS7EbRVSvFyNoiOU?rlkey=jxxjpb2o197s4eja9dtew3bvm&st=icqjyj4o&dl=0';
-
 const TEAM_COLORS = [
   '#dc2626', // rot
   '#16a34a', // grün
@@ -17,20 +14,13 @@ const TEAM_COLORS = [
 ];
 
 // ============================================================
-// FIREBASE
+// GITHUB
 // ============================================================
 
-firebase.initializeApp({
-  apiKey:            'AIzaSyBzGGIrE6-PMIXUcBt_Yw8uqMmYK73j1Gc',
-  authDomain:        'teqball-app.firebaseapp.com',
-  projectId:         'teqball-app',
-  storageBucket:     'teqball-app.firebasestorage.app',
-  messagingSenderId: '383453260526',
-  appId:             '1:383453260526:web:645fd896ff477a607fe1ff',
-});
-firebase.firestore().settings({ experimentalForceLongPolling: true });
-firebase.firestore().enablePersistence().catch(() => {});
-const DB_REF = firebase.firestore().doc('data/teqball_db');
+const GITHUB_REPO  = 'ff2710/teqball-app';
+const GITHUB_FILE  = 'db.json';
+const GITHUB_TOKEN = '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';
+const GITHUB_API   = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
 
 // ============================================================
 // STATE
@@ -50,9 +40,54 @@ let scheduleActive   = false;     // true while a round is in progress
 // DATABASE
 // ============================================================
 
-function saveDB() {
-  DB_REF.set({ players: db.players, sessions: db.sessions })
-    .catch(() => showDbStatus('Fehler beim Speichern.'));
+async function saveDB() {
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
+    const metaRes = await fetch(GITHUB_API, {
+      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' },
+    });
+    const body = { message: 'Update DB', content: encoded };
+    if (metaRes.ok) body.sha = (await metaRes.json()).sha;
+    const putRes = await fetch(GITHUB_API, {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!putRes.ok) throw new Error();
+  } catch {
+    showDbStatus('Fehler beim Speichern auf GitHub.');
+  }
+}
+
+async function loadDB() {
+  updateSyncStatus('loading');
+  updateHomeState();
+  try {
+    const res = await fetch(GITHUB_API, {
+      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' },
+    });
+    if (res.status === 404) {
+      db = { players: [], sessions: [] };
+    } else if (!res.ok) {
+      throw new Error();
+    } else {
+      const data = await res.json();
+      db = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))));
+    }
+    dbReady = true;
+    updateSyncStatus('connected');
+    renderKnownPlayers();
+    renderStats();
+    updateHomeState();
+    updateHomeBanner();
+  } catch {
+    updateSyncStatus('error');
+    updateHomeState();
+  }
 }
 
 function exportDB() {
@@ -73,12 +108,9 @@ function exportDB() {
 function showExportToast(filename) {
   const toast = document.getElementById('export-toast');
   document.getElementById('export-toast-filename').textContent = filename;
-  const cloudLink = document.getElementById('export-toast-cloud');
-  if (CLOUD_URL) { cloudLink.href = CLOUD_URL; cloudLink.classList.remove('hidden'); }
-  else           { cloudLink.classList.add('hidden'); }
   toast.classList.remove('hidden');
   clearTimeout(toast._t);
-  toast._t = setTimeout(() => toast.classList.add('hidden'), 6000);
+  toast._t = setTimeout(() => toast.classList.add('hidden'), 4000);
 }
 
 function importDBFromText(text, name) {
@@ -87,7 +119,7 @@ function importDBFromText(text, name) {
     if (!Array.isArray(imported.players) || !Array.isArray(imported.sessions)) throw new Error();
     db = imported;
     saveDB();
-    showDbStatus('Backup erfolgreich in Firestore gespeichert.');
+    showDbStatus('Backup erfolgreich auf GitHub gespeichert.');
     renderKnownPlayers();
     renderStats();
   } catch { showDbStatus('Fehler: Ungültige oder beschädigte Datei.'); }
@@ -108,9 +140,9 @@ function updateSyncStatus(status) {
     const count = db.sessions.length;
     text.textContent = `Verbunden · ${count} Spieltag${count !== 1 ? 'e' : ''}`;
   } else if (status === 'error') {
-    text.textContent = 'Verbindungsfehler';
+    text.textContent = 'Ladefehler — Seite neu laden';
   } else {
-    text.textContent = 'Verbinde...';
+    text.textContent = 'Lade...';
   }
 }
 
@@ -1098,31 +1130,9 @@ document.getElementById('session-saved-overlay').addEventListener('click', e => 
 
 // Database
 document.getElementById('export-btn').addEventListener('click', exportDB);
-document.getElementById('import-input-backup').addEventListener('change', e => {
-  if (e.target.files[0]) { importDB(e.target.files[0]); e.target.value = ''; }
-});
-
 // ============================================================
 // INIT
 // ============================================================
 
-updateSyncStatus('loading');
-updateHomeState();
 updateHomeBanner();
-
-DB_REF.onSnapshot(snapshot => {
-  if (snapshot.exists()) {
-    const data = snapshot.data();
-    db = { players: data.players || [], sessions: data.sessions || [] };
-  } else {
-    db = { players: [], sessions: [] };
-  }
-  dbReady = true;
-  updateSyncStatus('connected');
-  renderKnownPlayers();
-  renderStats();
-  updateHomeState();
-  updateHomeBanner();
-}, () => {
-  updateSyncStatus('error');
-});
+loadDB();
