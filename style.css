@@ -158,15 +158,26 @@ body {
   background: transparent;
   border: none;
   color: #64748b;
-  font-size: 0.9rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 10px 18px;
+  padding: 8px 14px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   border-radius: 0;
   letter-spacing: 0.02em;
   transition: color 0.15s, border-color 0.15s;
   -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.tab-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .tab-btn.active {
@@ -249,8 +260,14 @@ body {
   padding: 20px 16px 60px;
 }
 
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .tab-content.active {
   display: block;
+  animation: tabFadeIn 0.18s ease;
 }
 
 /* ── Container ── */
@@ -291,11 +308,12 @@ button {
   border-radius: 12px;
   background: #3b82f6;
   color: #fff;
-  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s, opacity 0.15s;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
   font-family: inherit;
 }
+button:active { transform: scale(0.97); }
 
 button:hover   { background: #2563eb; }
 button:active  { transform: scale(0.97); }
@@ -1239,6 +1257,22 @@ input[type="number"]:focus {
   padding: 12px 20px;
 }
 .btn-quick:hover { border-color: #94a3b8; background: #f8fafc; }
+
+/* ── Quick Mode: Round Indicator amber border ── */
+.round-indicator--quick {
+  border-left: 3px solid #f59e0b;
+}
+
+/* ── Quick Mode: Path Chooser hover lift ── */
+.card-path-chooser .btn-start:hover,
+.card-path-chooser .btn-quick:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.card-path-chooser .btn-start:active,
+.card-path-chooser .btn-quick:active {
+  transform: translateY(0) scale(0.97);
+}
 
 /* ── Quick Mode: Round Indicator Badge ── */
 .quick-mode-badge {

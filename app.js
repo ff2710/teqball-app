@@ -433,7 +433,7 @@ function generateSchedule(teams) {
 
     scheduleActive = true;
     document.getElementById('btn-end-round').textContent =
-      quickMode ? 'Runde beenden' : 'Runde beenden & speichern';
+      quickMode ? '✓ Runde beenden' : '✓ Runde beenden & speichern';
     renderSchedule(teams);
     updateRoundLabel();
     updateRoundIndicator();
@@ -787,7 +787,9 @@ function resetGameState() {
 }
 
 function updateRoundIndicator() {
-  document.getElementById('round-indicator').classList.remove('hidden');
+  const indicator = document.getElementById('round-indicator');
+  indicator.classList.remove('hidden');
+  indicator.classList.toggle('round-indicator--quick', quickMode);
   document.getElementById('round-indicator-label').textContent = `Runde ${currentRoundNumber}`;
   document.getElementById('btn-end-session-indicator').textContent = quickMode ? 'Beenden' : 'Abbrechen';
   const savedBadge = document.getElementById('round-indicator-saved');
@@ -798,7 +800,7 @@ function updateRoundIndicator() {
   } else {
     quickBadge.classList.add('hidden');
     if (currentRounds.length > 0) {
-      savedBadge.textContent = `${currentRounds.length} gespeichert`;
+      savedBadge.textContent = `✓ ${currentRounds.length}`;
       savedBadge.classList.remove('hidden');
     } else {
       savedBadge.classList.add('hidden');
@@ -815,9 +817,9 @@ function updateHomeBanner() {
     document.getElementById('active-session-text').textContent = quickMode
       ? `Schnelle Runde · ${currentRounds.length} Runde(n)`
       : `Aktiver Spieltag · ${currentRounds.length} Runde(n) gespeichert`;
-    startBtn.textContent = quickMode ? 'Spieltag starten' : 'Neuen Spieltag starten';
+    startBtn.textContent = quickMode ? '▶ Spieltag starten' : '▶ Neuen Spieltag starten';
   } else {
-    startBtn.textContent = 'Spieltag starten';
+    startBtn.textContent = '▶ Spieltag starten';
   }
 }
 
