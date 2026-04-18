@@ -528,6 +528,7 @@ function createScoreInput(initialValue, onChange) {
 
 function updateStandings() {
   renderStandings(computeStandings(currentTeams, currentMatches));
+  updateScoreValidation();
 }
 
 function computeStandings(teams, matches) {
@@ -608,16 +609,39 @@ function finalizeMatch(m) {
     scoreA: isNaN(sA) ? null : sA, scoreB: isNaN(sB) ? null : sB };
 }
 
-function hasActiveRoundResult() {
-  return currentMatches.some(
-    m => m.scoreA !== '' && m.scoreB !== '' &&
-         !isNaN(parseInt(m.scoreA)) && !isNaN(parseInt(m.scoreB))
-  );
+function isValidScore(a, b) {
+  const w = Math.max(a, b), l = Math.min(a, b);
+  return (w === 11 && l <= 9) || (w >= 12 && l === w - 2);
+}
+
+function updateScoreValidation() {
+  document.querySelectorAll('.match').forEach((div, i) => {
+    const m = currentMatches[i];
+    if (!m) return;
+    const aFilled = m.scoreA !== '' && !isNaN(parseInt(m.scoreA));
+    const bFilled = m.scoreB !== '' && !isNaN(parseInt(m.scoreB));
+    const bothFilled = aFilled && bFilled;
+    const valid = !bothFilled || isValidScore(parseInt(m.scoreA), parseInt(m.scoreB));
+    div.classList.toggle('match--invalid', bothFilled && !valid);
+  });
 }
 
 function endRound() {
-  if (!hasActiveRoundResult()) {
-    showEndRoundMsg('Bitte mindestens ein Ergebnis eintragen.');
+  const missing = currentMatches.filter(
+    m => m.scoreA === '' || m.scoreB === '' ||
+         isNaN(parseInt(m.scoreA)) || isNaN(parseInt(m.scoreB))
+  );
+  const invalid = currentMatches.filter(
+    m => m.scoreA !== '' && m.scoreB !== '' &&
+         !isNaN(parseInt(m.scoreA)) && !isNaN(parseInt(m.scoreB)) &&
+         !isValidScore(parseInt(m.scoreA), parseInt(m.scoreB))
+  );
+  if (missing.length > 0) {
+    showEndRoundMsg(`Noch ${missing.length} Ergebnis${missing.length > 1 ? 'se' : ''} fehlen.`);
+    return;
+  }
+  if (invalid.length > 0) {
+    showEndRoundMsg(`${invalid.length} ungültige${invalid.length > 1 ? '' : 's'} Ergebnis${invalid.length > 1 ? 'se' : ''} — Sieger braucht 11 Punkte mit 2er-Abstand (z. B. 12:10 statt 11:10).`);
     return;
   }
   // Record pairings used this round
