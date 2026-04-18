@@ -234,9 +234,21 @@
           <section class="card">
             <div class="section-header">
               <h2>Spielerstatistiken</h2>
-              <button id="stats-info-btn" class="info-btn" aria-label="Info">?</button>
+              <div class="section-header-right">
+                <select id="stats-sort-select" class="stats-sort-select">
+                  <option value="winRate">Quote</option>
+                  <option value="wins">Siege</option>
+                </select>
+                <button id="stats-info-btn" class="info-btn" aria-label="Info">?</button>
+              </div>
             </div>
             <div id="stats-container">
+              <p class="message">Noch keine Daten gespeichert.</p>
+            </div>
+          </section>
+          <section class="card">
+            <h2>Beste Duos</h2>
+            <div id="team-pairs-container">
               <p class="message">Noch keine Daten gespeichert.</p>
             </div>
           </section>

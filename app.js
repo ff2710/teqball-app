@@ -142,6 +142,7 @@ function doSwitchTab(tabId) {
   if (tabId === 'historie')    renderHistorie();
   if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); }
   if (tabId === 'spieltag' && !scheduleActive && currentRounds.length === 0) showPathChooser();
+  if (tabId === 'spieltag') updateSectionVisibility();
 }
 
 // ============================================================
@@ -311,6 +312,7 @@ function generateTeams() {
     document.getElementById('post-round-overlay').classList.add('hidden');
     document.getElementById('round-label').textContent = '';
     renderTeams(currentTeams);
+    updateSectionVisibility();
   };
 
   if (scheduleActive) {
@@ -441,6 +443,7 @@ function generateSchedule(teams) {
     document.getElementById('end-round-area').classList.remove('hidden');
     document.getElementById('end-round-msg').classList.add('hidden');
     updateStandings();
+    updateSectionVisibility();
   };
 
   if (scheduleActive) {
@@ -648,6 +651,7 @@ function endRound() {
 
   document.getElementById('section-table').classList.add('hidden');
   document.getElementById('end-round-area').classList.add('hidden');
+  updateSectionVisibility();
   updateRoundIndicator();
   updateHomeBanner();
   populatePostRoundModal();
@@ -716,6 +720,7 @@ function startNewRoundNewTeams() {
   document.getElementById('teams-container').innerHTML    = '';
   document.getElementById('schedule-container').innerHTML = '';
   document.getElementById('round-label').textContent      = '';
+  updateSectionVisibility();
   renderPlayers();
   renderKnownPlayers();
   updateRoundIndicator();
@@ -834,11 +839,19 @@ function showPathChooser() {
   document.getElementById('section-schedule').classList.add('hidden');
 }
 
+function updateSectionVisibility() {
+  const pathChooser = document.getElementById('section-path-chooser');
+  if (!pathChooser.classList.contains('hidden')) return;
+  document.getElementById('section-players').classList.toggle('hidden', scheduleActive);
+  document.getElementById('section-teams').classList.toggle('hidden', scheduleActive || currentTeams.length === 0);
+  document.getElementById('section-schedule').classList.toggle('hidden', currentTeams.length === 0);
+}
+
 function startSessionPath() {
   document.getElementById('section-path-chooser').classList.add('hidden');
   document.getElementById('section-players').classList.remove('hidden');
-  document.getElementById('section-teams').classList.remove('hidden');
-  document.getElementById('section-schedule').classList.remove('hidden');
+  document.getElementById('section-teams').classList.add('hidden');
+  document.getElementById('section-schedule').classList.add('hidden');
   document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -846,8 +859,8 @@ function startQuickPath() {
   quickMode = true;
   document.getElementById('section-path-chooser').classList.add('hidden');
   document.getElementById('section-players').classList.remove('hidden');
-  document.getElementById('section-teams').classList.remove('hidden');
-  document.getElementById('section-schedule').classList.remove('hidden');
+  document.getElementById('section-teams').classList.add('hidden');
+  document.getElementById('section-schedule').classList.add('hidden');
   document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -1041,13 +1054,102 @@ function renderHistorie() {
   });
 }
 
-function renderStats() {
-  const container = document.getElementById('stats-container');
+function computeTeamPairStats(sessions) {
+  const stats = {};
+  sessions.forEach(session => {
+    normalizeSessionRounds(session).forEach(round => {
+      round.matches.forEach(match => {
+        const sA = parseInt(match.scoreA), sB = parseInt(match.scoreB);
+        if (isNaN(sA) || isNaN(sB)) return;
+        [
+          { team: round.teams[match.teamA], scored: sA, conceded: sB },
+          { team: round.teams[match.teamB], scored: sB, conceded: sA },
+        ].forEach(({ team, scored, conceded }) => {
+          if (team.length !== 2) return;
+          const key = [...team].sort().join('|||');
+          if (!stats[key]) stats[key] = { names: [...team].sort(), wins: 0, losses: 0, matches: 0 };
+          stats[key].matches++;
+          if (scored > conceded) stats[key].wins++; else stats[key].losses++;
+        });
+      });
+    });
+  });
+  return Object.values(stats).map(s => ({
+    ...s,
+    winRate: s.matches > 0 ? Math.round((s.wins / s.matches) * 100) : 0,
+  }));
+}
+
+function renderTopTeams() {
+  const container = document.getElementById('team-pairs-container');
+  if (!container) return;
   if (db.sessions.length === 0) {
     container.innerHTML = '<p class="message">Noch keine Daten gespeichert.</p>';
     return;
   }
+  const pairs = computeTeamPairStats(db.sessions);
+  if (pairs.length === 0) {
+    container.innerHTML = '<p class="message">Noch keine 2er-Teams gespielt.</p>';
+    return;
+  }
+  const byWins = [...pairs].sort((a, b) => b.wins - a.wins || b.winRate - a.winRate).slice(0, 3);
+  const byRate = [...pairs].filter(p => p.matches >= 3)
+    .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins).slice(0, 3);
+
+  container.innerHTML = '';
+
+  function makeSection(label, items, mainVal, subVal) {
+    const section = document.createElement('div');
+    section.className = 'top-teams-section';
+    const heading = document.createElement('p');
+    heading.className = 'top-teams-label';
+    heading.textContent = label;
+    section.appendChild(heading);
+    if (items.length === 0) {
+      const msg = document.createElement('p');
+      msg.className = 'message';
+      msg.style.fontSize = '0.78rem';
+      msg.textContent = 'Mind. 3 Spiele pro Duo nötig.';
+      section.appendChild(msg);
+    } else {
+      items.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'top-team-row';
+        row.innerHTML = `
+          <span class="top-team-rank">${i + 1}</span>
+          <span class="top-team-names">${p.names.join(' & ')}</span>
+          <span class="top-team-main">${mainVal(p)}</span>
+          <span class="top-team-sub">${subVal(p)}</span>`;
+        section.appendChild(row);
+      });
+    }
+    return section;
+  }
+
+  container.appendChild(makeSection(
+    'Meiste Siege', byWins,
+    p => `${p.wins} S`,
+    p => `${p.winRate}%`
+  ));
+  container.appendChild(makeSection(
+    'Beste Quote', byRate,
+    p => `${p.winRate}%`,
+    p => `${p.wins}/${p.matches} S`
+  ));
+}
+
+function renderStats() {
+  const container = document.getElementById('stats-container');
+  if (db.sessions.length === 0) {
+    container.innerHTML = '<p class="message">Noch keine Daten gespeichert.</p>';
+    renderTopTeams();
+    return;
+  }
+  const sortKey = document.getElementById('stats-sort-select')?.value || 'winRate';
   const players = computePlayerStats(db.sessions);
+  if (sortKey === 'wins') {
+    players.sort((a, b) => b.wins - a.wins || b.winRate - a.winRate);
+  }
   const table   = document.createElement('table');
   table.className = 'stats-table';
   table.innerHTML = `<thead><tr>
@@ -1069,6 +1171,7 @@ function renderStats() {
   table.appendChild(tbody);
   container.innerHTML = '';
   container.appendChild(table);
+  renderTopTeams();
 }
 
 // ============================================================
@@ -1161,6 +1264,9 @@ document.getElementById('session-saved-overlay').addEventListener('click', e => 
   if (e.target === e.currentTarget)
     document.getElementById('session-saved-overlay').classList.add('hidden');
 });
+
+// Stats sort
+document.getElementById('stats-sort-select').addEventListener('change', renderStats);
 
 // Info overlays
 document.getElementById('stats-info-btn').addEventListener('click', () =>
