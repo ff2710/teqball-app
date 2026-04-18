@@ -34,6 +34,7 @@ let currentRounds    = [];       // rounds ended this session: [{ teams, matches
 let currentRoundNumber = 1;
 let sessionPairings  = new Set(); // player-pair keys used this session
 let scheduleActive   = false;     // true while a round is in progress
+let quickMode        = false;     // true when playing without DB save
 
 // ============================================================
 // DATABASE
@@ -106,8 +107,13 @@ function updateSyncStatus(status) {
 
 function updateHomeState() {
   const startBtn = document.getElementById('start-game-btn');
+  const sessionPathBtn = document.getElementById('btn-start-session-path');
   startBtn.disabled      = !dbReady;
   startBtn.style.opacity = dbReady ? '' : '0.4';
+  if (sessionPathBtn) {
+    sessionPathBtn.disabled      = !dbReady;
+    sessionPathBtn.style.opacity = dbReady ? '' : '0.4';
+  }
   document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab !== 'home') {
       btn.disabled      = !dbReady;
@@ -121,7 +127,7 @@ function updateHomeState() {
 // ============================================================
 
 function switchTab(tabId) {
-  if (!dbReady && tabId !== 'home') return;
+  if (!dbReady && tabId !== 'home' && !(quickMode && tabId === 'spieltag')) return;
   doSwitchTab(tabId);
 }
 
@@ -135,6 +141,7 @@ function doSwitchTab(tabId) {
   if (tabId === 'statistiken') renderStats();
   if (tabId === 'historie')    renderHistorie();
   if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); }
+  if (tabId === 'spieltag' && !scheduleActive && currentRounds.length === 0) showPathChooser();
 }
 
 // ============================================================
@@ -425,6 +432,8 @@ function generateSchedule(teams) {
     });
 
     scheduleActive = true;
+    document.getElementById('btn-end-round').textContent =
+      quickMode ? 'Runde beenden' : 'Runde beenden & speichern';
     renderSchedule(teams);
     updateRoundLabel();
     updateRoundIndicator();
@@ -686,6 +695,8 @@ function populatePostRoundModal() {
       <td class="stat-cell ${diff >= 0 ? 'positive' : 'negative'}">${diff > 0 ? '+' : ''}${diff}</td>`;
     tbody.appendChild(tr);
   });
+  document.getElementById('btn-end-session').textContent =
+    quickMode ? 'Schnelle Runde beenden' : 'Spieltag beenden';
 }
 
 function startNewRoundSameTeams() {
@@ -714,16 +725,17 @@ function startNewRoundNewTeams() {
 function endSession() {
   const saved = currentRounds.length;
   if (scheduleActive) {
-    const msg = saved > 0
-      ? `Runde abbrechen? Die laufende Runde wird verworfen — ${saved} abgeschlossene Runde(n) werden gespeichert.`
-      : 'Runde abbrechen? Nichts wird gespeichert.';
+    const msg = quickMode
+      ? 'Runde abbrechen? Nichts wird gespeichert.'
+      : saved > 0
+        ? `Runde abbrechen? Die laufende Runde wird verworfen — ${saved} abgeschlossene Runde(n) werden gespeichert.`
+        : 'Runde abbrechen? Nichts wird gespeichert.';
     showConfirm(msg, performEndSession, 'Ja, abbrechen');
   } else if (saved > 0) {
-    showConfirm(
-      `Neue Runde abbrechen? Spieltag mit ${saved} Runde(n) wird gespeichert.`,
-      performEndSession,
-      'Ja, beenden'
-    );
+    const msg = quickMode
+      ? 'Schnelle Runde beenden? Nichts wird gespeichert.'
+      : `Neue Runde abbrechen? Spieltag mit ${saved} Runde(n) wird gespeichert.`;
+    showConfirm(msg, performEndSession, 'Ja, beenden');
   } else {
     performEndSession();
   }
@@ -732,13 +744,14 @@ function endSession() {
 function performEndSession() {
   document.getElementById('post-round-overlay').classList.add('hidden');
   const savedRounds = currentRounds.length;
-  if (savedRounds > 0) {
+  if (savedRounds > 0 && !quickMode) {
     db.sessions.push({ id: Date.now(), date: new Date().toISOString().slice(0, 10), rounds: currentRounds });
     saveDB();
   }
+  const wasQuick = quickMode;
   resetGameState();
   switchTab('home');
-  if (savedRounds > 0) {
+  if (savedRounds > 0 && !wasQuick) {
     setTimeout(() => showSessionSavedModal(savedRounds), 80);
   }
 }
@@ -757,6 +770,7 @@ function resetGameState() {
   currentRoundNumber = 1;
   sessionPairings    = new Set();
   scheduleActive     = false;
+  quickMode          = false;
 
   document.getElementById('teams-container').innerHTML    = '';
   document.getElementById('schedule-container').innerHTML = '';
@@ -769,18 +783,26 @@ function resetGameState() {
   renderPlayers();
   renderKnownPlayers();
   updateHomeBanner();
+  showPathChooser();
 }
 
 function updateRoundIndicator() {
-  const el = document.getElementById('round-indicator');
-  el.classList.remove('hidden');
+  document.getElementById('round-indicator').classList.remove('hidden');
   document.getElementById('round-indicator-label').textContent = `Runde ${currentRoundNumber}`;
-  const badge = document.getElementById('round-indicator-saved');
-  if (currentRounds.length > 0) {
-    badge.textContent = `${currentRounds.length} gespeichert`;
-    badge.classList.remove('hidden');
+  document.getElementById('btn-end-session-indicator').textContent = quickMode ? 'Beenden' : 'Abbrechen';
+  const savedBadge = document.getElementById('round-indicator-saved');
+  const quickBadge = document.getElementById('quick-mode-badge');
+  if (quickMode) {
+    savedBadge.classList.add('hidden');
+    quickBadge.classList.remove('hidden');
   } else {
-    badge.classList.add('hidden');
+    quickBadge.classList.add('hidden');
+    if (currentRounds.length > 0) {
+      savedBadge.textContent = `${currentRounds.length} gespeichert`;
+      savedBadge.classList.remove('hidden');
+    } else {
+      savedBadge.classList.add('hidden');
+    }
   }
 }
 
@@ -790,12 +812,41 @@ function updateHomeBanner() {
   const startBtn = document.getElementById('start-game-btn');
   banner.classList.toggle('hidden', !active);
   if (active) {
-    document.getElementById('active-session-text').textContent =
-      `Aktiver Spieltag · ${currentRounds.length} Runde(n) gespeichert`;
-    startBtn.textContent = 'Neuen Spieltag starten';
+    document.getElementById('active-session-text').textContent = quickMode
+      ? `Schnelle Runde · ${currentRounds.length} Runde(n)`
+      : `Aktiver Spieltag · ${currentRounds.length} Runde(n) gespeichert`;
+    startBtn.textContent = quickMode ? 'Spieltag starten' : 'Neuen Spieltag starten';
   } else {
     startBtn.textContent = 'Spieltag starten';
   }
+}
+
+// ============================================================
+// QUICK MODE
+// ============================================================
+
+function showPathChooser() {
+  document.getElementById('section-path-chooser').classList.remove('hidden');
+  document.getElementById('section-players').classList.add('hidden');
+  document.getElementById('section-teams').classList.add('hidden');
+  document.getElementById('section-schedule').classList.add('hidden');
+}
+
+function startSessionPath() {
+  document.getElementById('section-path-chooser').classList.add('hidden');
+  document.getElementById('section-players').classList.remove('hidden');
+  document.getElementById('section-teams').classList.remove('hidden');
+  document.getElementById('section-schedule').classList.remove('hidden');
+  document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
+}
+
+function startQuickPath() {
+  quickMode = true;
+  document.getElementById('section-path-chooser').classList.add('hidden');
+  document.getElementById('section-players').classList.remove('hidden');
+  document.getElementById('section-teams').classList.remove('hidden');
+  document.getElementById('section-schedule').classList.remove('hidden');
+  document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ============================================================
@@ -805,14 +856,12 @@ function updateHomeBanner() {
 function startGame() {
   const doStart = () => {
     resetGameState();
-    switchTab('spieltag');
-    document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
+    doSwitchTab('spieltag');
   };
 
-  // If active session: confirm discard
   if (currentRounds.length > 0 || scheduleActive) {
     showConfirm(
-      'Neuen Spieltag starten? Der aktuelle, nicht gespeicherte Spieltag wird verworfen.',
+      'Neuen Spieltag starten? Der aktuelle Spieltag wird verworfen.',
       doStart
     );
     return;
@@ -1058,6 +1107,20 @@ document.getElementById('confirm-overlay').addEventListener('click', e => {
 
 // Home
 document.getElementById('start-game-btn').addEventListener('click', startGame);
+
+// Path chooser
+document.getElementById('btn-start-session-path').addEventListener('click', startSessionPath);
+document.getElementById('btn-start-quick-path').addEventListener('click', startQuickPath);
+document.getElementById('quick-info-btn').addEventListener('click', () =>
+  document.getElementById('quick-info-overlay').classList.remove('hidden')
+);
+document.getElementById('quick-info-close').addEventListener('click', () =>
+  document.getElementById('quick-info-overlay').classList.add('hidden')
+);
+document.getElementById('quick-info-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget)
+    document.getElementById('quick-info-overlay').classList.add('hidden');
+});
 document.getElementById('btn-resume-session').addEventListener('click', () => switchTab('spieltag'));
 
 // Players

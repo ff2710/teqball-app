@@ -85,6 +85,15 @@
         </div>
       </div>
 
+      <!-- ── QUICK INFO OVERLAY ── -->
+      <div id="quick-info-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="quick-info-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>Schnelle Runde</h2>
+          <p class="info-ranking">Alle Spielfunktionen stehen zur Verfügung — Teams, Spielplan, Livetabelle. Die Ergebnisse fließen aber nicht in die Langzeitstatistik ein und werden nicht gespeichert.</p>
+        </div>
+      </div>
+
       <!-- ── STATS INFO OVERLAY ── -->
       <div id="stats-info-overlay" class="help-overlay hidden">
         <div class="help-modal">
@@ -151,11 +160,21 @@
             <div class="round-indicator-left">
               <span id="round-indicator-label">Runde 1</span>
               <span id="round-indicator-saved" class="round-saved-badge hidden"></span>
+            <span id="quick-mode-badge" class="quick-mode-badge hidden">Schnell</span>
             </div>
             <button id="btn-end-session-indicator" class="btn-end-session-indicator">Abbrechen</button>
           </div>
 
-          <section class="card" id="section-players">
+          <section class="card card-path-chooser" id="section-path-chooser">
+            <button id="btn-start-session-path" class="btn-full btn-start" disabled style="opacity:0.4">Spieltag starten</button>
+            <div class="path-divider"><span>oder</span></div>
+            <div class="path-quick-row">
+              <button id="btn-start-quick-path" class="btn-full btn-quick">Schnelle Runde</button>
+              <button id="quick-info-btn" class="info-btn" aria-label="Info">?</button>
+            </div>
+          </section>
+
+          <section class="card hidden" id="section-players">
             <h2>Spieler</h2>
             <div class="input-row">
               <input type="text" id="player-input" placeholder="Spielername eingeben" autocomplete="off" />
@@ -169,13 +188,13 @@
             <ul id="player-list"></ul>
           </section>
 
-          <section class="card" id="section-teams">
+          <section class="card hidden" id="section-teams">
             <h2>Teams</h2>
             <button id="generate-teams-btn" class="btn-full">Teams generieren</button>
             <div id="teams-container"></div>
           </section>
 
-          <section class="card" id="section-schedule">
+          <section class="card hidden" id="section-schedule">
             <h2>Spielplan &amp; Ergebnisse <span id="round-label" class="round-label"></span></h2>
             <button id="generate-schedule-btn" class="btn-full">Spielplan generieren</button>
             <div id="schedule-container"></div>

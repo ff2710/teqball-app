@@ -1198,4 +1198,57 @@ input[type="number"]:focus {
   line-height: 1.4;
 }
 
+/* ── Quick Mode: Path Chooser ── */
+.card-path-chooser {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card-path-chooser.hidden { display: none; }
+
+.path-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.path-divider::before,
+.path-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.path-quick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.path-quick-row .btn-quick { flex: 1; }
+
+.btn-quick {
+  background: transparent;
+  border: 2px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.95rem;
+  padding: 12px 20px;
+}
+.btn-quick:hover { border-color: #94a3b8; background: #f8fafc; }
+
+/* ── Quick Mode: Round Indicator Badge ── */
+.quick-mode-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.quick-mode-badge.hidden { display: none; }
+
 
