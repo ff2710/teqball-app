@@ -28,6 +28,7 @@ firebase.initializeApp({
   messagingSenderId: '383453260526',
   appId:             '1:383453260526:web:645fd896ff477a607fe1ff',
 });
+firebase.firestore().settings({ experimentalForceLongPolling: true });
 firebase.firestore().enablePersistence().catch(() => {});
 const DB_REF = firebase.firestore().doc('data/teqball_db');
 
