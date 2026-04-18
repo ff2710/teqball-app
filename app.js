@@ -14,13 +14,12 @@ const TEAM_COLORS = [
 ];
 
 // ============================================================
-// GITHUB
+// JSONBIN
 // ============================================================
 
-const GITHUB_REPO  = 'ff2710/teqball-app';
-const GITHUB_FILE  = 'db.json';
-const GITHUB_TOKEN = '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';
-const GITHUB_API   = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
+const JSONBIN_ID  = '69e370a836566621a8c7f7ad';
+const JSONBIN_KEY = '$2a$10$Ua0owTKHSRfxmg7ByIAefOBSnHGWr4ZF1fY5L.W4KXFkqrTJ0CHVq';
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
 
 // ============================================================
 // STATE
@@ -42,24 +41,18 @@ let scheduleActive   = false;     // true while a round is in progress
 
 async function saveDB() {
   try {
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
-    const metaRes = await fetch(GITHUB_API, {
-      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' },
-    });
-    const body = { message: 'Update DB', content: encoded };
-    if (metaRes.ok) body.sha = (await metaRes.json()).sha;
-    const putRes = await fetch(GITHUB_API, {
+    const res = await fetch(JSONBIN_URL, {
       method: 'PUT',
       headers: {
-        Authorization: `token ${GITHUB_TOKEN}`,
-        Accept: 'application/vnd.github+json',
         'Content-Type': 'application/json',
+        'X-Access-Key': JSONBIN_KEY,
+        'X-Bin-Versioning': 'false',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(db),
     });
-    if (!putRes.ok) throw new Error();
+    if (!res.ok) throw new Error();
   } catch {
-    showDbStatus('Fehler beim Speichern auf GitHub.');
+    showDbStatus('Fehler beim Speichern.');
   }
 }
 
@@ -67,16 +60,12 @@ async function loadDB() {
   updateSyncStatus('loading');
   updateHomeState();
   try {
-    const res = await fetch(
-      `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${GITHUB_FILE}?t=${Date.now()}`
-    );
-    if (res.status === 404) {
-      db = { players: [], sessions: [] };
-    } else if (!res.ok) {
-      throw new Error();
-    } else {
-      db = await res.json();
-    }
+    const res = await fetch(`${JSONBIN_URL}/latest`, {
+      headers: { 'X-Access-Key': JSONBIN_KEY },
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    db = data.record;
     dbReady = true;
     updateSyncStatus('connected');
     renderKnownPlayers();
