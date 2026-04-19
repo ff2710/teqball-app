@@ -38,12 +38,12 @@
       <div id="help-overlay" class="help-overlay hidden">
         <div class="help-modal">
           <button id="help-close" class="help-close" aria-label="Schließen">×</button>
-          <h2>Kurzanleitung</h2>
+          <h2>Infos</h2>
           <ul>
-            <li><strong>Grüner Punkt</strong> = Daten synchronisiert. Warten bis er grün ist, bevor ein Spieltag gestartet wird.</li>
-            <li><strong>Bekannte Spieler antippen</strong> — nicht neu eintippen! Nur Chips verknüpfen Namen korrekt mit der Langzeitstatistik.</li>
+            <li><strong>Spieltag</strong> — Mehrere Runden hintereinander spielen. Nach jeder Runde gleiche oder neue Teams wählen. Beim Abschließen werden alle Runden automatisch gespeichert und in die Statistiken eingerechnet.</li>
+            <li><strong>Schnelle Runde</strong> — Voller Spielbetrieb, aber nichts wird gespeichert. Statistiken bleiben unberührt.</li>
+            <li><strong>Spielernamen</strong> — Bekannte Spieler immer über die Chips antippen, nie neu eintippen! Duplikate verfälschen die Langzeitstatistik.</li>
             <li><strong>Gültige Ergebnisse:</strong> 11:x (x ≤ 9) oder Deuce — z.&thinsp;B. 12:10, 13:11 …</li>
-            <li><strong>Schnelle Runde</strong> — nichts wird gespeichert, Statistiken bleiben unberührt.</li>
           </ul>
         </div>
       </div>
@@ -94,6 +94,16 @@
           <button id="rounds-history-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Gespeicherte Runden</h2>
           <div id="rounds-history-list"></div>
+        </div>
+      </div>
+
+      <!-- ── SESSION INFO OVERLAY ── -->
+      <div id="session-info-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="session-info-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>▶ Spieltag</h2>
+          <p class="info-ranking">Starte eine Session und spiele beliebig viele Runden. Nach jeder Runde kannst du mit gleichen oder neuen Teams weitermachen. Beim Beenden werden alle Runden automatisch in der Datenbank gespeichert.</p>
+          <p class="info-warning">Nur echte Ergebnisse eintragen — Testspiele verfälschen die Langzeitstatistiken.</p>
         </div>
       </div>
 
@@ -172,7 +182,10 @@
           </div>
 
           <section class="card card-path-chooser" id="section-path-chooser">
-            <button id="btn-start-session-path" class="btn-full btn-start" disabled style="opacity:0.4">▶ Spieltag starten</button>
+            <div class="path-session-row">
+              <button id="btn-start-session-path" class="btn-full btn-start" disabled style="opacity:0.4">▶ Spieltag starten</button>
+              <button id="session-info-btn" class="info-btn" aria-label="Info">?</button>
+            </div>
             <div class="path-divider"><span>oder</span></div>
             <div class="path-quick-row">
               <button id="btn-start-quick-path" class="btn-full btn-quick">⚡ Schnelle Runde</button>

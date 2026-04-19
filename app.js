@@ -1206,6 +1206,16 @@ document.getElementById('start-game-btn').addEventListener('click', startGame);
 // Path chooser
 document.getElementById('btn-start-session-path').addEventListener('click', startSessionPath);
 document.getElementById('btn-start-quick-path').addEventListener('click', startQuickPath);
+document.getElementById('session-info-btn').addEventListener('click', () =>
+  document.getElementById('session-info-overlay').classList.remove('hidden')
+);
+document.getElementById('session-info-close').addEventListener('click', () =>
+  document.getElementById('session-info-overlay').classList.add('hidden')
+);
+document.getElementById('session-info-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget)
+    document.getElementById('session-info-overlay').classList.add('hidden');
+});
 document.getElementById('quick-info-btn').addEventListener('click', () =>
   document.getElementById('quick-info-overlay').classList.remove('hidden')
 );
