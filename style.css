@@ -1603,6 +1603,16 @@ input[type="number"]:focus {
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
+.summary-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.summary-trophy-icon {
+  width: 16px;
+  height: 16px;
+  color: #f59e0b;
+}
 .summary-stats-header {
   display: flex;
   align-items: center;
@@ -1612,16 +1622,32 @@ input[type="number"]:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 7px 10px;
+  gap: 10px;
+  padding: 8px 12px;
   background: #f8fafc;
   border-radius: 10px;
   font-size: 0.85rem;
 }
 .summary-round-num {
-  font-weight: 700;
-  color: #334155;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .summary-round-winner {
-  color: #475569;
-  font-weight: 500;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+}
+.summary-round-tie { color: #b45309; }
+.tie-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 6px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: middle;
 }

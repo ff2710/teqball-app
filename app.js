@@ -831,18 +831,29 @@ function renderSummaryStats(sortKey) {
   container.appendChild(table);
 }
 
+function getRoundWinners(round) {
+  const standings = computeStandings(round.teams, round.matches);
+  if (!standings.length) return [];
+  const first = standings[0];
+  return standings.filter(s =>
+    s.wins === first.wins &&
+    getH2H(first.teamIndex, s.teamIndex, round.matches) === 0 &&
+    (s.pointsFor - s.pointsAgainst) === (first.pointsFor - first.pointsAgainst)
+  );
+}
+
 function showSessionSummary() {
-  const MEDALS = ['🥇', '🥈', '🥉'];
   document.getElementById('session-summary-title').textContent =
-    _summaryWasQuick ? '⚡ Quick Match' : 'Spieltag';
+    (_summaryWasQuick ? '⚡ Quick Match' : 'Spieltag') + ' · Zusammenfassung';
 
   const roundsEl = document.getElementById('summary-rounds');
   roundsEl.innerHTML = _summaryRounds.map((round, i) => {
-    const winner = computeStandings(round.teams, round.matches)[0];
-    const label  = winner ? winner.team.join(' & ') : '—';
+    const winners = getRoundWinners(round);
+    const isTie   = winners.length > 1;
+    const label   = winners.length ? winners.map(w => w.team.join(' & ')).join(' vs. ') : '—';
     return `<div class="summary-round-row">
-      <span class="summary-round-num">${MEDALS[0]} Runde ${i + 1}</span>
-      <span class="summary-round-winner">${label}</span>
+      <span class="summary-round-num">Runde ${i + 1}</span>
+      <span class="summary-round-winner${isTie ? ' summary-round-tie' : ''}">${label}${isTie ? ' <span class="tie-badge">Gleichstand</span>' : ''}</span>
     </div>`;
   }).join('');
 
