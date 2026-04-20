@@ -1499,3 +1499,66 @@ input[type="number"]:focus {
   padding: 0 18px 16px;
 }
 .historie-body.hidden { display: none; }
+
+/* ── Header: actions group ── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Header: reload button ── */
+.btn-reload {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-reload svg { width: 16px; height: 16px; }
+.btn-reload:hover { background: rgba(255,255,255,0.2); }
+.btn-reload.spinning svg {
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Pull-to-refresh indicator ── */
+.ptr-indicator {
+  position: fixed;
+  top: -48px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 999;
+  pointer-events: none;
+}
+.ptr-indicator.ptr-visible { opacity: 1; }
+.ptr-indicator .ptr-spinner {
+  width: 18px;
+  height: 18px;
+  color: #0f172a;
+  transition: transform 0.05s linear;
+}
+.ptr-indicator.ptr-spinning .ptr-spinner {
+  animation: spin 0.7s linear infinite;
+  transition: none;
+}

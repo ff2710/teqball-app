@@ -14,10 +14,19 @@
   <body>
     <div class="app">
 
+      <div id="ptr-indicator" class="ptr-indicator" aria-hidden="true">
+        <svg class="ptr-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
+      </div>
+
       <header class="app-header">
         <div class="header-top">
           <h1>Teqball <img src="teqball_icon_weiß.png" alt="" class="header-icon" /></h1>
-          <button id="help-btn" class="btn-help" aria-label="Hilfe">?</button>
+          <div class="header-actions">
+            <button id="reload-btn" class="btn-reload" aria-label="Neu laden">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/><polyline points="21 3 21 9 15 9"/></svg>
+            </button>
+            <button id="help-btn" class="btn-help" aria-label="Hilfe">?</button>
+          </div>
         </div>
       </header>
       <nav class="tabs-nav">

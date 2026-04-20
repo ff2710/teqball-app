@@ -1327,6 +1327,50 @@ document.getElementById('btn-historie-toggle').addEventListener('click', () => {
 });
 
 // ============================================================
+// RELOAD + PULL-TO-REFRESH
+// ============================================================
+
+function triggerReload() {
+  const btn = document.getElementById('reload-btn');
+  if (btn) btn.classList.add('spinning');
+  loadDB().finally(() => {
+    if (btn) btn.classList.remove('spinning');
+  });
+}
+
+document.getElementById('reload-btn').addEventListener('click', triggerReload);
+
+(function initPullToRefresh() {
+  const PTR_THRESHOLD = 72;
+  let startY = 0, pulling = false, triggered = false;
+  const indicator = document.getElementById('ptr-indicator');
+
+  document.addEventListener('touchstart', e => {
+    if (window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; triggered = false; }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const dy = Math.min(e.touches[0].clientY - startY, PTR_THRESHOLD * 1.5);
+    if (dy <= 0) { indicator.style.transform = ''; indicator.classList.remove('ptr-visible'); return; }
+    const progress = Math.min(dy / PTR_THRESHOLD, 1);
+    indicator.style.transform = `translateY(${dy * 0.55}px)`;
+    indicator.classList.toggle('ptr-visible', dy > 16);
+    indicator.querySelector('.ptr-spinner').style.transform = `rotate(${progress * 240}deg)`;
+    triggered = progress >= 1;
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!pulling) return;
+    pulling = false;
+    indicator.style.transform = '';
+    indicator.classList.remove('ptr-visible');
+    indicator.querySelector('.ptr-spinner').style.transform = '';
+    if (triggered) { indicator.classList.add('ptr-spinning'); triggerReload(); setTimeout(() => indicator.classList.remove('ptr-spinning'), 1200); }
+  });
+})();
+
+// ============================================================
 // INIT
 // ============================================================
 
