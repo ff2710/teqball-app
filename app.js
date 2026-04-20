@@ -559,6 +559,8 @@ function getH2H(teamA, teamB, matches) {
   return 0;
 }
 
+const RANK_MEDALS = ['🥇', '🥈', '🥉'];
+
 function renderStandings(standings) {
   const container  = document.getElementById('standings-container');
   const table      = document.createElement('table');
@@ -572,7 +574,7 @@ function renderStandings(standings) {
     const diff  = row.pointsFor - row.pointsAgainst;
     const tr    = document.createElement('tr');
     tr.innerHTML = `
-      <td class="rank">${i + 1}</td>
+      <td class="rank">${RANK_MEDALS[i] ?? i + 1}</td>
       <td>
         <span class="table-team-badge" style="background:${color}">T${row.teamIndex + 1}</span>
         <span class="table-team-members">${row.team.join(' & ')}</span>
@@ -924,15 +926,8 @@ function updateHomeBanner() {
 }
 
 // ============================================================
-// HOME EXTRAS (greeting + last session)
+// HOME EXTRAS (last session)
 // ============================================================
-
-function getGreeting() {
-  const now = new Date();
-  const h   = String(now.getHours()).padStart(2, '0');
-  const m   = String(now.getMinutes()).padStart(2, '0');
-  return `Hi! Es ist ${h}:${m} Uhr — ab anne Platte!`;
-}
 
 function formatSessionDate(isoDate) {
   const today = new Date().toISOString().slice(0, 10);
@@ -963,8 +958,6 @@ function renderLastSession() {
 
 function updateHomeExtras() {
   if (!dbReady) return;
-  document.getElementById('greeting-text').textContent = getGreeting();
-  document.getElementById('section-greeting').classList.remove('hidden');
   renderLastSession();
 }
 
@@ -972,11 +965,44 @@ function updateHomeExtras() {
 // QUICK MODE
 // ============================================================
 
-function backToPathChooser() {
-  showConfirm('Wirklich zurück? Alle Änderungen werden verworfen.', () => {
-    resetGameState();
-    doSwitchTab('home');
-  }, 'Ja, zurück');
+function goBackToPlayerSelection() {
+  currentPlayers  = [];
+  currentTeams    = [];
+  currentMatches  = [];
+  scheduleActive  = false;
+  document.getElementById('teams-container').innerHTML    = '';
+  document.getElementById('schedule-container').innerHTML = '';
+  document.getElementById('standings-container').innerHTML = '';
+  document.getElementById('section-table').classList.add('hidden');
+  document.getElementById('end-round-area').classList.add('hidden');
+  document.getElementById('round-label').textContent = '';
+  document.getElementById('section-spieltag-idle').classList.add('hidden');
+  document.getElementById('section-players').classList.remove('hidden');
+  document.getElementById('section-teams').classList.remove('hidden');
+  document.getElementById('section-schedule').classList.add('hidden');
+  document.getElementById('btn-back-to-chooser').classList.remove('hidden');
+  renderPlayers();
+  renderKnownPlayers();
+}
+
+function handleBackButton() {
+  if (scheduleActive || currentTeams.length > 0) {
+    showConfirm(
+      'Zurück zur Spielerauswahl? Spielplan und Ergebnisse dieser Runde werden verworfen.',
+      goBackToPlayerSelection,
+      'Ja, zurück'
+    );
+  } else {
+    if (currentPlayers.length > 0) {
+      showConfirm('Zurück zu Home? Die Spielerauswahl wird verworfen.', () => {
+        resetGameState();
+        doSwitchTab('home');
+      }, 'Ja, zurück');
+    } else {
+      resetGameState();
+      doSwitchTab('home');
+    }
+  }
 }
 
 function showSpieltagIdle() {
@@ -1508,7 +1534,7 @@ document.getElementById('summary-dismiss-btn').addEventListener('click', () => {
 document.getElementById('summary-sort-select').addEventListener('change', e =>
   renderSummaryStats(e.target.value)
 );
-document.getElementById('btn-back-to-chooser').addEventListener('click', backToPathChooser);
+document.getElementById('btn-back-to-chooser').addEventListener('click', handleBackButton);
 document.getElementById('btn-historie-toggle').addEventListener('click', () => {
   const body = document.getElementById('historie-body');
   const chevron = document.getElementById('historie-chevron');

@@ -268,12 +268,17 @@ body {
   margin: 10px 0 0;
 }
 .info-list li {
-  display: flex;
-  gap: 10px;
-  padding: 5px 0;
+  display: block;
+  padding: 8px 0;
   font-size: 0.85rem;
   color: #475569;
+  line-height: 1.5;
   border-bottom: 1px solid #f1f5f9;
+}
+.info-list li strong {
+  display: block;
+  color: #0f172a;
+  margin-bottom: 2px;
 }
 .info-list li:last-child { border-bottom: none; }
 .info-list li strong {
@@ -1651,11 +1656,6 @@ input[type="number"]:focus {
   margin-left: 4px;
   vertical-align: middle;
 }
-
-/* ── Home: greeting card ── */
-.card-greeting { gap: 4px; }
-.greeting-text { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
-.greeting-sub  { font-size: 0.82rem; color: #64748b; }
 
 /* ── Home: active session banner overrides card defaults ── */
 .active-session-banner.card {

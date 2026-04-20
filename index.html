@@ -56,7 +56,6 @@
             <li><strong>Spieltag &amp; Runden</strong> — Ein Spieltag besteht aus einer oder mehreren Runden. Pro Runde spielt jedes Team einmal gegen jedes andere. Nach jeder Runde: gleiche oder neue Teams — beliebig oft wiederholen. Beim Beenden werden alle Runden gespeichert und in die Statistiken eingerechnet.</li>
             <li><strong>Quick Match</strong> — Gleicher Spielbetrieb, aber ohne Speichern. Statistiken bleiben unberührt.</li>
             <li><strong>Langzeitstatistiken</strong> — Die App erkennt Spieler anhand ihres Namens. Bekannte Spieler immer per Chip antippen — nie neu eintippen. Tippfehler oder Spitznamen erzeugen Duplikate und verfälschen die Statistiken.</li>
-            <li><strong>Gültige Ergebnisse</strong> — 11:x (x ≤ 9) oder Deuce, z.&thinsp;B. 12:10, 13:11 …</li>
           </ul>
         </div>
       </div>
@@ -177,8 +176,11 @@
       <div id="schedule-info-overlay" class="help-overlay hidden">
         <div class="help-modal">
           <button id="schedule-info-close" class="help-close" aria-label="Schließen">×</button>
-          <h2>Spielplan</h2>
+          <h2>Spielplan &amp; Ergebnisse</h2>
           <p class="info-ranking">Jedes Team spielt genau einmal gegen jedes andere. Die Reihenfolge ist so optimiert, dass kein Team zweimal hintereinander spielen muss.</p>
+          <ul class="info-list">
+            <li><strong>Gültige Ergebnisse</strong>11:x (x ≤ 9), oder Deuce — z.&thinsp;B. 12:10, 13:11 …</li>
+          </ul>
         </div>
       </div>
 
@@ -218,11 +220,6 @@
               <span id="sync-status-text" class="sync-status-text">Lade...</span>
             </div>
             <p id="sync-loading-msg" class="sync-loading-msg">Kurz warten — Daten werden synchronisiert. Gleich geht's los.</p>
-          </section>
-
-          <section id="section-greeting" class="card card-greeting hidden">
-            <p id="greeting-text" class="greeting-text"></p>
-            <p class="greeting-sub">Bereit für die nächste Runde?</p>
           </section>
 
           <div id="active-session-banner" class="card active-session-banner hidden">
