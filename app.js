@@ -1331,11 +1331,7 @@ document.getElementById('btn-historie-toggle').addEventListener('click', () => {
 // ============================================================
 
 function triggerReload() {
-  const btn = document.getElementById('reload-btn');
-  if (btn) btn.classList.add('spinning');
-  loadDB().finally(() => {
-    if (btn) btn.classList.remove('spinning');
-  });
+  window.location.reload();
 }
 
 document.getElementById('reload-btn').addEventListener('click', triggerReload);
