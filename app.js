@@ -965,6 +965,7 @@ function startSessionPath() {
 
 function startQuickPath() {
   quickMode = true;
+  document.getElementById('known-players-row').classList.add('hidden');
   document.getElementById('section-path-chooser').classList.add('hidden');
   document.getElementById('btn-back-to-chooser').classList.remove('hidden');
   document.getElementById('section-players').classList.remove('hidden');
