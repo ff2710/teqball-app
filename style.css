@@ -1745,3 +1745,227 @@ input[type="number"]:focus {
   background: #fef3c7;
   color: #b45309;
 }
+
+/* ── CSS Custom Properties ── */
+:root {
+  --color-primary: #3b82f6;
+  --color-success: #16a34a;
+  --color-danger:  #dc2626;
+  --color-text-1:  #0f172a;
+  --color-text-2:  #475569;
+  --color-text-3:  #94a3b8;
+  --color-surface: #ffffff;
+  --color-muted:   #f1f5f9;
+  --color-border:  #e2e8f0;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.18);
+}
+
+/* ── Focus visible ── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Unified button active scale ── */
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn-start:active:not(:disabled),
+.btn-quick:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* ── Touch targets for small buttons ── */
+.info-btn {
+  position: relative;
+}
+.info-btn::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+.btn-remove {
+  position: relative;
+}
+.btn-remove::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+
+/* ── Match card: highlight on score input focus ── */
+.match:has(.score-input:focus-within) {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+/* ── Standings: Platz-1-Zeile hervorheben ── */
+.standings-table tbody tr:first-child td {
+  background: linear-gradient(90deg, #fef9c3 0%, #fff 100%);
+  font-weight: 700;
+}
+
+/* ── Toast notification ── */
+.app-toast {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 82px);
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  z-index: 300;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.app-toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Scoreboard button in section header ── */
+.btn-scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid #cbd5e1;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+  position: relative;
+}
+.btn-scoreboard::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+.btn-scoreboard:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+/* ── Scoreboard overlay ── */
+.scoreboard-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0f172a;
+  z-index: 500;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+.scoreboard-content {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px 40px;
+  gap: 20px;
+}
+.scoreboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.scoreboard-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.scoreboard-mode-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+.scoreboard-round-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+.scoreboard-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid #334155;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.scoreboard-close:hover { border-color: #64748b; color: #f8fafc; }
+.scoreboard-standings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+.scoreboard-row {
+  display: grid;
+  grid-template-columns: 40px 16px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  background: #1e293b;
+  border-radius: var(--radius-lg);
+  border: 1px solid #334155;
+}
+.scoreboard-rank {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  line-height: 1;
+}
+.scoreboard-team-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.scoreboard-name {
+  font-size: clamp(1rem, 3.5vw, 1.5rem);
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scoreboard-wins {
+  font-size: clamp(0.82rem, 2.5vw, 1rem);
+  color: #94a3b8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.scoreboard-diff {
+  font-size: clamp(0.82rem, 2.5vw, 1rem);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.scoreboard-diff.positive { color: #4ade80; }
+.scoreboard-diff.negative { color: #f87171; }

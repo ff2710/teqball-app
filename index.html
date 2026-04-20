@@ -47,7 +47,7 @@
       </div><!-- /.app-sticky -->
 
       <!-- ── HELP MODAL ── -->
-      <div id="help-overlay" class="help-overlay hidden">
+      <div id="help-overlay" class="help-overlay hidden" role="dialog" aria-modal="true" aria-label="Hilfe">
         <div class="help-modal">
           <button id="help-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Infos</h2>
@@ -61,7 +61,7 @@
       </div>
 
       <!-- ── CONFIRM MODAL ── -->
-      <div id="confirm-overlay" class="help-overlay hidden">
+      <div id="confirm-overlay" class="help-overlay hidden" role="dialog" aria-modal="true" aria-label="Bestätigung">
         <div class="help-modal confirm-modal">
           <p id="confirm-msg" class="confirm-msg"></p>
           <div class="confirm-actions">
@@ -72,7 +72,7 @@
       </div>
 
       <!-- ── POST-ROUND MODAL ── -->
-      <div id="post-round-overlay" class="help-overlay hidden">
+      <div id="post-round-overlay" class="help-overlay hidden" role="dialog" aria-modal="true" aria-label="Rundenende">
         <div class="help-modal post-round-modal">
           <div id="post-round-winner" class="post-round-winner"></div>
           <div class="post-round-standings-wrap">
@@ -306,7 +306,12 @@
           <section class="card hidden" id="section-table">
             <div class="section-header">
               <h2>Livetabelle</h2>
-              <button id="standings-info-btn" class="info-btn" aria-label="Info">?</button>
+              <div class="section-header-right">
+                <button id="scoreboard-btn" class="btn-scoreboard" aria-label="Scoreboard öffnen" title="Scoreboard">
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="14" height="14"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 7h14"/><path d="M7 7v10"/></svg>
+                </button>
+                <button id="standings-info-btn" class="info-btn" aria-label="Info">?</button>
+              </div>
             </div>
             <div id="standings-container"></div>
           </section>
@@ -372,6 +377,20 @@
       </div>
 
     </div>
+
+      <!-- ── SCOREBOARD OVERLAY ── -->
+      <div id="scoreboard-overlay" class="scoreboard-overlay hidden" role="dialog" aria-modal="true" aria-label="Scoreboard">
+        <div class="scoreboard-content">
+          <div class="scoreboard-header">
+            <div class="scoreboard-meta">
+              <span id="scoreboard-mode-badge" class="scoreboard-mode-badge"></span>
+              <span id="scoreboard-round-label" class="scoreboard-round-label"></span>
+            </div>
+            <button id="scoreboard-close" class="scoreboard-close" aria-label="Schließen">✕</button>
+          </div>
+          <div id="scoreboard-standings-container" class="scoreboard-standings-container"></div>
+        </div>
+      </div>
 
     <script src="app.js"></script>
   </body>

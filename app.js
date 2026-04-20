@@ -41,20 +41,44 @@ let quickMode        = false;     // true when playing without DB save
 // ============================================================
 
 async function saveDB() {
-  try {
-    const res = await fetch(JSONBIN_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Access-Key': JSONBIN_KEY,
-        'X-Bin-Versioning': 'false',
-      },
-      body: JSON.stringify(db),
-    });
-    if (!res.ok) throw new Error();
-  } catch {
-    updateSyncStatus('error');
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(JSONBIN_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Access-Key': JSONBIN_KEY,
+          'X-Bin-Versioning': 'false',
+        },
+        body: JSON.stringify(db),
+      });
+      if (res.ok) {
+        const count = db.sessions.length;
+        const dot  = document.getElementById('sync-dot');
+        const text = document.getElementById('sync-status-text');
+        if (dot)  dot.className    = 'sync-dot sync-connected';
+        if (text) text.textContent = `Verbunden · ${count} Spieltag${count !== 1 ? 'e' : ''}`;
+        return;
+      }
+    } catch {}
+    if (attempt < 2) await new Promise(r => setTimeout(r, 900 * (attempt + 1)));
   }
+  updateSyncStatus('error');
+  showToast('Sync fehlgeschlagen — Daten lokal gespeichert');
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    toast.className = 'app-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('app-toast--visible');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('app-toast--visible'), 3500);
 }
 
 async function loadDB() {
@@ -69,11 +93,18 @@ async function loadDB() {
     db = data.record;
     dbReady = true;
     updateSyncStatus('connected');
-    renderKnownPlayers();
     renderStats();
     updateHomeState();
     updateHomeBanner();
     updateHomeExtras();
+    const restored = restoreSession();
+    if (restored) {
+      restoreSessionUI();
+      renderKnownPlayers();
+      showToast('Unterbrochene Session wiederhergestellt');
+    } else {
+      renderKnownPlayers();
+    }
   } catch {
     updateSyncStatus('error');
     updateHomeState();
@@ -138,7 +169,7 @@ function doSwitchTab(tabId) {
   );
   if (tabId === 'statistiken') { renderStats(); if (!document.getElementById('historie-body').classList.contains('hidden')) renderHistorie(); }
   if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); updateHomeExtras(); animateHomeCards(); }
-  if (tabId === 'spieltag' && !scheduleActive && currentRounds.length === 0) showSpieltagIdle();
+  if (tabId === 'spieltag' && !scheduleActive && currentRounds.length === 0 && currentPlayers.length === 0 && currentTeams.length === 0) showSpieltagIdle();
   if (tabId === 'spieltag') updateSectionVisibility();
 }
 
@@ -177,6 +208,7 @@ function renderKnownPlayers() {
     const chip = document.createElement('button');
     chip.className   = 'player-chip';
     chip.textContent = name;
+    chip.setAttribute('aria-label', `${name} hinzufügen`);
     chip.addEventListener('click', () => {
       currentPlayers.push(name);
       renderPlayers();
@@ -198,6 +230,7 @@ function renderPlayers() {
     const removeBtn  = document.createElement('button');
     removeBtn.textContent = '×';
     removeBtn.className   = 'btn-remove';
+    removeBtn.setAttribute('aria-label', `${name} entfernen`);
     removeBtn.addEventListener('click', () => {
       currentPlayers.splice(index, 1);
       renderPlayers();
@@ -311,6 +344,7 @@ function generateTeams() {
     document.getElementById('round-label').textContent = '';
     renderTeams(currentTeams);
     updateSectionVisibility();
+    persistSession();
   };
 
   if (scheduleActive) {
@@ -442,6 +476,7 @@ function generateSchedule(teams) {
     document.getElementById('end-round-msg').classList.add('hidden');
     updateStandings();
     updateSectionVisibility();
+    persistSession();
   };
 
   if (scheduleActive) {
@@ -509,7 +544,11 @@ function createScoreInput(initialValue, onChange) {
   input.placeholder = '0';
   input.value    = initialValue;
   input.inputMode = 'numeric';
-  input.addEventListener('input', e => onChange(e.target.value));
+  let _timer;
+  input.addEventListener('input', e => {
+    clearTimeout(_timer);
+    _timer = setTimeout(() => onChange(e.target.value), 120);
+  });
   return input;
 }
 
@@ -520,6 +559,9 @@ function createScoreInput(initialValue, onChange) {
 function updateStandings() {
   renderStandings(computeStandings(currentTeams, currentMatches));
   updateScoreValidation();
+  if (!document.getElementById('scoreboard-overlay')?.classList.contains('hidden')) {
+    renderScoreboardStandings();
+  }
 }
 
 function computeStandings(teams, matches) {
@@ -648,6 +690,7 @@ function endRound() {
   });
   currentRoundNumber++;
   scheduleActive = false;
+  persistSession();
 
   document.getElementById('section-table').classList.add('hidden');
   document.getElementById('end-round-area').classList.add('hidden');
@@ -890,6 +933,7 @@ function resetGameState() {
   renderKnownPlayers();
   updateHomeBanner();
   showSpieltagIdle();
+  persistSession();
 }
 
 function updateRoundIndicator() {
@@ -962,6 +1006,67 @@ function updateHomeExtras() {
 }
 
 // ============================================================
+// SESSION PERSISTENCE (localStorage)
+// ============================================================
+
+function persistSession() {
+  if (currentPlayers.length === 0 && currentTeams.length === 0 && currentRounds.length === 0) {
+    localStorage.removeItem('teq_session');
+    return;
+  }
+  try {
+    localStorage.setItem('teq_session', JSON.stringify({
+      currentPlayers, currentTeams, currentMatches,
+      currentRounds, currentRoundNumber, quickMode, scheduleActive,
+      sessionPairings: [...sessionPairings],
+    }));
+  } catch {}
+}
+
+function restoreSession() {
+  try {
+    const raw = localStorage.getItem('teq_session');
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    currentPlayers     = s.currentPlayers     ?? [];
+    currentTeams       = s.currentTeams       ?? [];
+    currentMatches     = s.currentMatches     ?? [];
+    currentRounds      = s.currentRounds      ?? [];
+    currentRoundNumber = s.currentRoundNumber ?? 1;
+    quickMode          = s.quickMode          ?? false;
+    scheduleActive     = s.scheduleActive     ?? false;
+    sessionPairings    = new Set(s.sessionPairings ?? []);
+    return currentPlayers.length > 0 || currentTeams.length > 0 || currentRounds.length > 0;
+  } catch { return false; }
+}
+
+function restoreSessionUI() {
+  if (currentPlayers.length === 0 && currentTeams.length === 0 && currentRounds.length === 0) return;
+
+  document.getElementById('section-spieltag-idle').classList.add('hidden');
+  document.getElementById('btn-back-to-chooser').classList.remove('hidden');
+  setModeIndicator(quickMode ? 'quick' : 'session');
+  if (quickMode) document.getElementById('known-players-row').classList.add('hidden');
+
+  renderPlayers();
+  if (currentTeams.length > 0) renderTeams(currentTeams);
+
+  if (scheduleActive && currentMatches.length > 0) {
+    document.getElementById('section-table').classList.remove('hidden');
+    document.getElementById('end-round-area').classList.remove('hidden');
+    document.getElementById('btn-end-round').textContent =
+      quickMode ? '✓ Runde beenden' : '✓ Runde beenden & speichern';
+    renderSchedule(currentTeams);
+    updateRoundLabel();
+    updateStandings();
+  }
+
+  updateSectionVisibility();
+  if (currentRounds.length > 0 || scheduleActive) updateRoundIndicator();
+  updateHomeBanner();
+}
+
+// ============================================================
 // QUICK MODE
 // ============================================================
 
@@ -983,6 +1088,7 @@ function goBackToPlayerSelection() {
   document.getElementById('btn-back-to-chooser').classList.remove('hidden');
   renderPlayers();
   renderKnownPlayers();
+  persistSession();
 }
 
 function handleBackButton() {
@@ -1081,29 +1187,16 @@ function setModeIndicator(mode) {
   }
 }
 
-function startGame() {
+function launchSession(mode) {
   const doStart = () => {
     pulseHeaderIcon();
     resetGameState();
     doSwitchTab('spieltag');
-    startSessionPath();
+    mode === 'quick' ? startQuickPath() : startSessionPath();
   };
-  if (currentRounds.length > 0 || scheduleActive) {
-    showConfirm('Neuen Spieltag starten? Der aktuelle Spieltag wird verworfen.', doStart);
-    return;
-  }
-  doStart();
-}
-
-function startQuickFromHome() {
-  const doStart = () => {
-    pulseHeaderIcon();
-    resetGameState();
-    doSwitchTab('spieltag');
-    startQuickPath();
-  };
-  if (currentRounds.length > 0 || scheduleActive) {
-    showConfirm('Quick Match starten? Der aktuelle Spieltag wird verworfen.', doStart);
+  if (currentRounds.length > 0 || scheduleActive || currentPlayers.length > 0) {
+    const label = mode === 'quick' ? 'Quick Match' : 'Neuen Spieltag';
+    showConfirm(`${label} starten? Der aktuelle Stand wird verworfen.`, doStart);
     return;
   }
   doStart();
@@ -1425,8 +1518,8 @@ document.getElementById('confirm-overlay').addEventListener('click', e => {
 });
 
 // Home
-document.getElementById('start-game-btn').addEventListener('click', startGame);
-document.getElementById('start-quick-btn').addEventListener('click', startQuickFromHome);
+document.getElementById('start-game-btn').addEventListener('click', () => launchSession('session'));
+document.getElementById('start-quick-btn').addEventListener('click', () => launchSession('quick'));
 document.getElementById('session-info-btn').addEventListener('click', () =>
   document.getElementById('session-info-overlay').classList.remove('hidden')
 );
@@ -1509,6 +1602,14 @@ document.getElementById('standings-info-close').addEventListener('click', () =>
 document.getElementById('standings-info-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) document.getElementById('standings-info-overlay').classList.add('hidden');
 });
+document.getElementById('scoreboard-btn').addEventListener('click', openScoreboard);
+document.getElementById('scoreboard-close').addEventListener('click', closeScoreboard);
+document.getElementById('scoreboard-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeScoreboard();
+});
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) document.getElementById('scoreboard-overlay').classList.add('hidden');
+});
 document.getElementById('teams-info-btn').addEventListener('click', () =>
   document.getElementById('teams-info-overlay').classList.remove('hidden')
 );
@@ -1545,6 +1646,47 @@ document.getElementById('btn-historie-toggle').addEventListener('click', () => {
   btn.setAttribute('aria-expanded', String(!isOpen));
   if (!isOpen) renderHistorie();
 });
+
+// ============================================================
+// SCOREBOARD MODE
+// ============================================================
+
+function openScoreboard() {
+  renderScoreboardStandings();
+  const overlay = document.getElementById('scoreboard-overlay');
+  overlay.classList.remove('hidden');
+  overlay.requestFullscreen?.().catch(() => {});
+}
+
+function closeScoreboard() {
+  document.getElementById('scoreboard-overlay').classList.add('hidden');
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+}
+
+function renderScoreboardStandings() {
+  const standings = computeStandings(currentTeams, currentMatches);
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  const container = document.getElementById('scoreboard-standings-container');
+  if (!container) return;
+  container.innerHTML = '';
+  standings.forEach((row, i) => {
+    const color = TEAM_COLORS[row.teamIndex % TEAM_COLORS.length];
+    const diff  = row.pointsFor - row.pointsAgainst;
+    const div = document.createElement('div');
+    div.className = 'scoreboard-row';
+    div.innerHTML = `
+      <span class="scoreboard-rank">${MEDALS[i] ?? i + 1}</span>
+      <span class="scoreboard-team-dot" style="background:${color}"></span>
+      <span class="scoreboard-name">${row.team.join(' & ')}</span>
+      <span class="scoreboard-wins">${row.wins}S · ${row.losses}N</span>
+      <span class="scoreboard-diff ${diff >= 0 ? 'positive' : 'negative'}">${diff > 0 ? '+' : ''}${diff}</span>`;
+    container.appendChild(div);
+  });
+  const modeEl  = document.getElementById('scoreboard-mode-badge');
+  const roundEl = document.getElementById('scoreboard-round-label');
+  if (modeEl)  modeEl.textContent  = quickMode ? '⚡ Quick Match' : '▶ Spieltag';
+  if (roundEl) roundEl.textContent = `Runde ${currentRoundNumber}`;
+}
 
 // ============================================================
 // RELOAD + PULL-TO-REFRESH
