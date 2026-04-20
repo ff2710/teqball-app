@@ -73,6 +73,7 @@ async function loadDB() {
     renderStats();
     updateHomeState();
     updateHomeBanner();
+    updateHomeExtras();
   } catch {
     updateSyncStatus('error');
     updateHomeState();
@@ -107,17 +108,12 @@ function updateSyncStatus(status) {
 
 function updateHomeState() {
   const startBtn = document.getElementById('start-game-btn');
-  const sessionPathBtn = document.getElementById('btn-start-session-path');
   startBtn.disabled      = !dbReady;
   startBtn.style.opacity = dbReady ? '' : '0.4';
-  if (sessionPathBtn) {
-    sessionPathBtn.disabled      = !dbReady;
-    sessionPathBtn.style.opacity = dbReady ? '' : '0.4';
-  }
   document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab !== 'home') {
-      btn.disabled      = !dbReady;
-      btn.style.opacity = dbReady ? '' : '0.4';
+      btn.disabled      = !dbReady && btn.dataset.tab !== 'spieltag';
+      btn.style.opacity = (dbReady || btn.dataset.tab === 'spieltag') ? '' : '0.4';
     }
   });
 }
@@ -139,8 +135,8 @@ function doSwitchTab(tabId) {
     panel.classList.toggle('active', panel.id === `tab-${tabId}`)
   );
   if (tabId === 'statistiken') { renderStats(); if (!document.getElementById('historie-body').classList.contains('hidden')) renderHistorie(); }
-  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); }
-  if (tabId === 'spieltag' && !scheduleActive && currentRounds.length === 0) showPathChooser();
+  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); updateHomeExtras(); }
+  if (tabId === 'spieltag' && !scheduleActive && currentRounds.length === 0) showSpieltagIdle();
   if (tabId === 'spieltag') updateSectionVisibility();
 }
 
@@ -767,6 +763,7 @@ function finalizeSession() {
   }
   resetGameState();
   switchTab('home');
+  renderLastSession();
   if (_summaryRounds.length > 0 && !_summaryWasQuick) {
     setTimeout(() => showSessionSavedModal(_summaryRounds.length), 80);
   }
@@ -888,7 +885,7 @@ function resetGameState() {
   renderPlayers();
   renderKnownPlayers();
   updateHomeBanner();
-  showPathChooser();
+  showSpieltagIdle();
 }
 
 function updateRoundIndicator() {
@@ -914,18 +911,62 @@ function updateRoundIndicator() {
 }
 
 function updateHomeBanner() {
-  const active  = currentRounds.length > 0 || scheduleActive;
-  const banner  = document.getElementById('active-session-banner');
-  const startBtn = document.getElementById('start-game-btn');
+  const active = currentRounds.length > 0 || scheduleActive;
+  const banner = document.getElementById('active-session-banner');
   banner.classList.toggle('hidden', !active);
   if (active) {
     document.getElementById('active-session-text').textContent = quickMode
-      ? `Quick Match · ${currentRounds.length} Runde(n)`
+      ? `⚡ Quick Match · ${currentRounds.length} Runde(n)`
       : `Aktiver Spieltag · ${currentRounds.length} Runde(n) gespeichert`;
-    startBtn.textContent = quickMode ? '▶ Spieltag starten' : '▶ Neuen Spieltag starten';
-  } else {
-    startBtn.textContent = '▶ Spieltag starten';
   }
+}
+
+// ============================================================
+// HOME EXTRAS (greeting + last session)
+// ============================================================
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 6)  return 'Noch so spät? 🌙';
+  if (h < 11) return 'Guten Morgen! ☀️';
+  if (h < 14) return 'Guten Mittag! 🍽️';
+  if (h < 18) return 'Guten Nachmittag! 🎯';
+  if (h < 22) return 'Guten Abend! ⚡';
+  return 'Noch so spät? 🌙';
+}
+
+function formatSessionDate(isoDate) {
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (isoDate === today)     return 'Heute';
+  if (isoDate === yesterday) return 'Gestern';
+  const d = new Date(isoDate + 'T12:00:00');
+  return d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function renderLastSession() {
+  const section   = document.getElementById('section-last-session');
+  const container = document.getElementById('last-session-container');
+  if (!db.sessions.length) { section.classList.add('hidden'); return; }
+  const last    = db.sessions[db.sessions.length - 1];
+  const players = computeSessionPlayerStats([last])
+    .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate)
+    .slice(0, 3);
+  const MEDALS  = ['🥇', '🥈', '🥉'];
+  const rounds  = last.rounds?.length ?? 0;
+  container.innerHTML = `
+    <p class="last-session-date">${formatSessionDate(last.date)} · ${rounds} Runde${rounds !== 1 ? 'n' : ''}</p>
+    <div class="last-session-top">
+      ${players.map((p, i) => `<span>${MEDALS[i]} ${p.name}</span>`).join('')}
+    </div>`;
+  section.classList.remove('hidden');
+}
+
+function updateHomeExtras() {
+  if (!dbReady) return;
+  document.getElementById('greeting-text').textContent = getGreeting();
+  document.getElementById('section-greeting').classList.remove('hidden');
+  renderLastSession();
 }
 
 // ============================================================
@@ -935,11 +976,12 @@ function updateHomeBanner() {
 function backToPathChooser() {
   showConfirm('Wirklich zurück? Alle Änderungen werden verworfen.', () => {
     resetGameState();
+    doSwitchTab('home');
   }, 'Ja, zurück');
 }
 
-function showPathChooser() {
-  document.getElementById('section-path-chooser').classList.remove('hidden');
+function showSpieltagIdle() {
+  document.getElementById('section-spieltag-idle').classList.remove('hidden');
   document.getElementById('section-players').classList.add('hidden');
   document.getElementById('section-teams').classList.add('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
@@ -947,31 +989,29 @@ function showPathChooser() {
 }
 
 function updateSectionVisibility() {
-  const pathChooser = document.getElementById('section-path-chooser');
-  if (!pathChooser.classList.contains('hidden')) return;
+  const idle = document.getElementById('section-spieltag-idle');
+  if (!idle.classList.contains('hidden')) return;
   document.getElementById('section-players').classList.toggle('hidden', scheduleActive);
   document.getElementById('section-teams').classList.toggle('hidden', scheduleActive);
   document.getElementById('section-schedule').classList.toggle('hidden', currentTeams.length === 0);
 }
 
 function startSessionPath() {
-  document.getElementById('section-path-chooser').classList.add('hidden');
+  document.getElementById('section-spieltag-idle').classList.add('hidden');
   document.getElementById('btn-back-to-chooser').classList.remove('hidden');
   document.getElementById('section-players').classList.remove('hidden');
   document.getElementById('section-teams').classList.remove('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
-  document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
 function startQuickPath() {
   quickMode = true;
   document.getElementById('known-players-row').classList.add('hidden');
-  document.getElementById('section-path-chooser').classList.add('hidden');
+  document.getElementById('section-spieltag-idle').classList.add('hidden');
   document.getElementById('btn-back-to-chooser').classList.remove('hidden');
   document.getElementById('section-players').classList.remove('hidden');
   document.getElementById('section-teams').classList.remove('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
-  document.getElementById('section-players').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ============================================================
@@ -982,16 +1022,25 @@ function startGame() {
   const doStart = () => {
     resetGameState();
     doSwitchTab('spieltag');
+    startSessionPath();
   };
-
   if (currentRounds.length > 0 || scheduleActive) {
-    showConfirm(
-      'Neuen Spieltag starten? Der aktuelle Spieltag wird verworfen.',
-      doStart
-    );
+    showConfirm('Neuen Spieltag starten? Der aktuelle Spieltag wird verworfen.', doStart);
     return;
   }
+  doStart();
+}
 
+function startQuickFromHome() {
+  const doStart = () => {
+    resetGameState();
+    doSwitchTab('spieltag');
+    startQuickPath();
+  };
+  if (currentRounds.length > 0 || scheduleActive) {
+    showConfirm('Quick Match starten? Der aktuelle Spieltag wird verworfen.', doStart);
+    return;
+  }
   doStart();
 }
 
@@ -1312,20 +1361,7 @@ document.getElementById('confirm-overlay').addEventListener('click', e => {
 
 // Home
 document.getElementById('start-game-btn').addEventListener('click', startGame);
-
-// Path chooser
-document.getElementById('btn-start-session-path').addEventListener('click', startSessionPath);
-document.getElementById('btn-start-quick-path').addEventListener('click', startQuickPath);
-document.getElementById('session-info-btn').addEventListener('click', () =>
-  document.getElementById('session-info-overlay').classList.remove('hidden')
-);
-document.getElementById('session-info-close').addEventListener('click', () =>
-  document.getElementById('session-info-overlay').classList.add('hidden')
-);
-document.getElementById('session-info-overlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget)
-    document.getElementById('session-info-overlay').classList.add('hidden');
-});
+document.getElementById('start-quick-btn').addEventListener('click', startQuickFromHome);
 document.getElementById('quick-info-btn').addEventListener('click', () =>
   document.getElementById('quick-info-overlay').classList.remove('hidden')
 );

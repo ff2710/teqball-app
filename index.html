@@ -141,16 +141,6 @@
         </div>
       </div>
 
-      <!-- ── SESSION INFO OVERLAY ── -->
-      <div id="session-info-overlay" class="help-overlay hidden">
-        <div class="help-modal">
-          <button id="session-info-close" class="help-close" aria-label="Schließen">×</button>
-          <h2>▶ Spieltag</h2>
-          <p class="info-ranking">Starte eine Session und spiele beliebig viele Runden. Nach jeder Runde kannst du mit gleichen oder neuen Teams weitermachen. Beim Beenden werden alle Runden automatisch in der Datenbank gespeichert.</p>
-          <p class="info-warning">Nur echte Ergebnisse eintragen — Testspiele verfälschen die Langzeitstatistiken.</p>
-        </div>
-      </div>
-
       <!-- ── QUICK INFO OVERLAY ── -->
       <div id="quick-info-overlay" class="help-overlay hidden">
         <div class="help-modal">
@@ -220,15 +210,30 @@
             <p id="sync-loading-msg" class="sync-loading-msg">Kurz warten — Daten werden synchronisiert. Gleich geht's los.</p>
           </section>
 
-          <section class="card card-start">
-            <div id="active-session-banner" class="active-session-banner hidden">
-              <div class="active-session-info">
-                <span class="active-session-dot"></span>
-                <span id="active-session-text">Aktiver Spieltag</span>
-              </div>
-              <button id="btn-resume-session" class="btn-sm">Weiterspielen →</button>
+          <section id="section-greeting" class="card card-greeting hidden">
+            <p id="greeting-text" class="greeting-text"></p>
+            <p class="greeting-sub">Bereit für die nächste Runde?</p>
+          </section>
+
+          <div id="active-session-banner" class="card active-session-banner hidden">
+            <div class="active-session-info">
+              <span class="active-session-dot"></span>
+              <span id="active-session-text">Aktiver Spieltag</span>
             </div>
+            <button id="btn-resume-session" class="btn-sm">Weiterspielen →</button>
+          </div>
+
+          <section class="card card-start">
             <button id="start-game-btn" class="btn-full btn-start" disabled style="opacity:0.4">▶ Spieltag starten</button>
+            <div class="path-quick-row">
+              <button id="start-quick-btn" class="btn-full btn-quick">⚡ Quick Match</button>
+              <button id="quick-info-btn" class="info-btn" aria-label="Info">?</button>
+            </div>
+          </section>
+
+          <section id="section-last-session" class="card hidden">
+            <h2>Letzter Spieltag</h2>
+            <div id="last-session-container"></div>
           </section>
 
         </div>
@@ -248,16 +253,9 @@
             <button id="btn-end-session-indicator" class="btn-end-session-indicator">Abbrechen</button>
           </div>
 
-          <section class="card card-path-chooser" id="section-path-chooser">
-            <div class="path-session-row">
-              <button id="btn-start-session-path" class="btn-full btn-start" disabled style="opacity:0.4">▶ Spieltag starten</button>
-              <button id="session-info-btn" class="info-btn" aria-label="Info">?</button>
-            </div>
-            <div class="path-divider"><span>oder</span></div>
-            <div class="path-quick-row">
-              <button id="btn-start-quick-path" class="btn-full btn-quick">⚡ Quick Match</button>
-              <button id="quick-info-btn" class="info-btn" aria-label="Info">?</button>
-            </div>
+          <section id="section-spieltag-idle" class="card card-spieltag-idle">
+            <p class="spieltag-idle-msg">Kein aktiver Spieltag</p>
+            <p class="spieltag-idle-hint">Starte über Home.</p>
           </section>
 
           <section class="card hidden" id="section-players">
