@@ -91,6 +91,34 @@
         </div>
       </div>
 
+      <!-- ── SESSION SUMMARY MODAL ── -->
+      <div id="session-summary-overlay" class="help-overlay hidden">
+        <div class="help-modal session-summary-modal">
+          <h2 id="session-summary-title">Zusammenfassung</h2>
+
+          <div class="summary-section">
+            <p class="summary-section-label">Rundensieger</p>
+            <div id="summary-rounds"></div>
+          </div>
+
+          <div class="summary-section">
+            <div class="summary-stats-header">
+              <p class="summary-section-label">Spieler</p>
+              <div class="section-header-right">
+                <svg class="sort-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v14M4 6l3-3 3 3"/><path d="M13 17V3M10 14l3 3 3-3"/></svg>
+                <select id="summary-sort-select" class="stats-sort-select">
+                  <option value="wins">Siege</option>
+                  <option value="winRate">Quote</option>
+                </select>
+              </div>
+            </div>
+            <div id="summary-stats-container"></div>
+          </div>
+
+          <button id="summary-dismiss-btn" class="btn-full btn-start">Fertig</button>
+        </div>
+      </div>
+
       <!-- ── SESSION SAVED MODAL ── -->
       <div id="session-saved-overlay" class="help-overlay hidden">
         <div class="help-modal confirm-modal">

@@ -1578,3 +1578,50 @@ input[type="number"]:focus {
   animation: spin 0.7s linear infinite;
   transition: none;
 }
+
+/* ── Session summary modal ── */
+.session-summary-modal {
+  max-height: 88vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.session-summary-modal h2 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0;
+}
+.summary-section { display: flex; flex-direction: column; gap: 8px; }
+.summary-section-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.summary-stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.summary-round-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 10px;
+  background: #f8fafc;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+.summary-round-num {
+  font-weight: 700;
+  color: #334155;
+}
+.summary-round-winner {
+  color: #475569;
+  font-weight: 500;
+}

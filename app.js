@@ -168,6 +168,7 @@ function closeConfirm() {
 
 function renderKnownPlayers() {
   const row   = document.getElementById('known-players-row');
+  if (quickMode) { row.classList.add('hidden'); return; }
   const known = db.players.filter(
     p => !currentPlayers.some(c => c.toLowerCase() === p.toLowerCase())
   );
@@ -219,7 +220,7 @@ function addPlayer() {
     return;
   }
   currentPlayers.push(name);
-  if (!db.players.some(p => p.toLowerCase() === name.toLowerCase())) {
+  if (!quickMode && !db.players.some(p => p.toLowerCase() === name.toLowerCase())) {
     db.players.push(name);
     saveDB();
   }
@@ -745,19 +746,108 @@ function endSession() {
   }
 }
 
+let _summaryRounds  = [];
+let _summaryWasQuick = false;
+
 function performEndSession() {
   document.getElementById('post-round-overlay').classList.add('hidden');
-  const savedRounds = currentRounds.length;
-  if (savedRounds > 0 && !quickMode) {
-    db.sessions.push({ id: Date.now(), date: new Date().toISOString().slice(0, 10), rounds: currentRounds });
+  _summaryRounds   = [...currentRounds];
+  _summaryWasQuick = quickMode;
+  if (_summaryRounds.length > 0) {
+    showSessionSummary();
+  } else {
+    finalizeSession();
+  }
+}
+
+function finalizeSession() {
+  if (_summaryRounds.length > 0 && !_summaryWasQuick) {
+    db.sessions.push({ id: Date.now(), date: new Date().toISOString().slice(0, 10), rounds: _summaryRounds });
     saveDB();
   }
-  const wasQuick = quickMode;
   resetGameState();
   switchTab('home');
-  if (savedRounds > 0 && !wasQuick) {
-    setTimeout(() => showSessionSavedModal(savedRounds), 80);
+  if (_summaryRounds.length > 0 && !_summaryWasQuick) {
+    setTimeout(() => showSessionSavedModal(_summaryRounds.length), 80);
   }
+}
+
+function computeSessionPlayerStats(rounds) {
+  const map = {};
+  rounds.forEach(round => {
+    computeStandings(round.teams, round.matches).forEach(row => {
+      row.team.forEach(player => {
+        if (!map[player]) map[player] = { wins: 0, losses: 0, played: 0, pFor: 0, pAgainst: 0 };
+        map[player].wins    += row.wins;
+        map[player].losses  += row.losses;
+        map[player].played  += row.wins + row.losses;
+        map[player].pFor    += row.pointsFor;
+        map[player].pAgainst += row.pointsAgainst;
+      });
+    });
+  });
+  return Object.entries(map).map(([name, s]) => ({
+    name,
+    wins: s.wins,
+    losses: s.losses,
+    played: s.played,
+    winRate: s.played > 0 ? s.wins / s.played : 0,
+    diff: s.pFor - s.pAgainst,
+  }));
+}
+
+function renderSummaryStats(sortKey) {
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  const players = computeSessionPlayerStats(_summaryRounds)
+    .sort((a, b) => sortKey === 'wins'
+      ? b.wins - a.wins || b.winRate - a.winRate
+      : b.winRate - a.winRate || b.wins - a.wins);
+
+  const container = document.getElementById('summary-stats-container');
+  if (!players.length) { container.innerHTML = '<p class="message">Keine Daten.</p>'; return; }
+
+  const table = document.createElement('table');
+  table.className = 'stats-table';
+  table.innerHTML = `<thead><tr>
+    <th class="rank-th"></th><th style="text-align:left">Name</th>
+    <th>Sp</th><th>S</th><th>N</th><th>Quote</th><th>Diff</th>
+  </tr></thead>`;
+  const tbody = document.createElement('tbody');
+  players.forEach((p, i) => {
+    const diff = p.diff;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="stat-rank">${MEDALS[i] ?? i + 1}</td>
+      <td>${p.name}</td>
+      <td>${p.played}</td>
+      <td>${p.wins}</td>
+      <td>${p.losses}</td>
+      <td>${p.played > 0 ? Math.round(p.winRate * 100) + '%' : '—'}</td>
+      <td class="${diff >= 0 ? 'positive' : 'negative'}">${diff > 0 ? '+' : ''}${diff}</td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  container.innerHTML = '';
+  container.appendChild(table);
+}
+
+function showSessionSummary() {
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  document.getElementById('session-summary-title').textContent =
+    _summaryWasQuick ? '⚡ Quick Match' : 'Spieltag';
+
+  const roundsEl = document.getElementById('summary-rounds');
+  roundsEl.innerHTML = _summaryRounds.map((round, i) => {
+    const winner = computeStandings(round.teams, round.matches)[0];
+    const label  = winner ? winner.team.join(' & ') : '—';
+    return `<div class="summary-round-row">
+      <span class="summary-round-num">${MEDALS[0]} Runde ${i + 1}</span>
+      <span class="summary-round-winner">${label}</span>
+    </div>`;
+  }).join('');
+
+  renderSummaryStats(document.getElementById('summary-sort-select').value);
+  document.getElementById('session-summary-overlay').classList.remove('hidden');
 }
 
 function showSessionSavedModal(roundCount) {
@@ -1314,6 +1404,13 @@ document.getElementById('schedule-info-close').addEventListener('click', () =>
 document.getElementById('schedule-info-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) document.getElementById('schedule-info-overlay').classList.add('hidden');
 });
+document.getElementById('summary-dismiss-btn').addEventListener('click', () => {
+  document.getElementById('session-summary-overlay').classList.add('hidden');
+  finalizeSession();
+});
+document.getElementById('summary-sort-select').addEventListener('change', e =>
+  renderSummaryStats(e.target.value)
+);
 document.getElementById('btn-back-to-chooser').addEventListener('click', backToPathChooser);
 document.getElementById('btn-historie-toggle').addEventListener('click', () => {
   const body = document.getElementById('historie-body');
