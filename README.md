@@ -5,7 +5,7 @@
 
 ---
 
-# 🏓 Teqball App
+# ⚽ Teqball App
 
 **Der digitale Spieltag-Assistent für eure Teqball-Runden.**
 
