@@ -1,7 +1,6 @@
  > [!WARNING]
-> **Bitte die Live-App nicht mit eigenen Testdaten befüllen.**
-> Diese Instanz läuft auf einer geteilten Datenbank, die von einer echten Spielgruppe aktiv genutzt wird. Fremde Eingaben gefährden die Datenintegrität und verfälschen langjährige Statistiken.
-> Wer die App ausprobieren möchte, sollte das Repository klonen und eine eigene Instanz aufsetzen — [Anleitung weiter unten](#-cloning--setup).
+> **Diese App läuft auf einer echten, aktiv genutzten Datenbank.**
+> Bitte keine Testdaten eingeben. Zum Ausprobieren: Repository klonen → [eigene Instanz aufsetzen](#-cloning--setup).
 
 ---
 
