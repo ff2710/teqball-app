@@ -22,7 +22,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 /* ── Sticky wrapper (header + nav together) ── */
@@ -40,7 +39,7 @@ body {
 }
 
 .app-sticky.scrolled .app-header {
-  padding: 7px 16px;
+  padding: 6px 16px;
 }
 
 /* ── Header top row ── */
@@ -60,25 +59,16 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: font-size 0.25s ease, gap 0.25s ease;
+  transition: font-size 0.25s ease;
 }
 
 .app-sticky.scrolled .app-header h1 {
-  font-size: 0;
-  gap: 0;
+  font-size: 0.95rem;
+  gap: 6px;
 }
 
 .header-title-text {
-  overflow: hidden;
   white-space: nowrap;
-  opacity: 1;
-  max-width: 300px;
-  transition: opacity 0.15s ease, max-width 0.25s ease;
-}
-
-.app-sticky.scrolled .header-title-text {
-  opacity: 0;
-  max-width: 0;
 }
 
 .header-icon {
@@ -90,7 +80,7 @@ body {
 }
 
 .app-sticky.scrolled .header-icon {
-  height: 22px;
+  height: 20px;
 }
 
 .btn-help {
