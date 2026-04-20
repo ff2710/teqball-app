@@ -1374,12 +1374,8 @@ updateHomeBanner();
 updateHomeState();
 loadDB();
 
-// Elevate sticky tab nav when title scrolls out of view
-const _headerEl  = document.querySelector('.app-header');
-const _tabsNavEl = document.querySelector('.tabs-nav');
-if (_headerEl && _tabsNavEl) {
-  new IntersectionObserver(
-    ([entry]) => _tabsNavEl.classList.toggle('elevated', !entry.isIntersecting),
-    { threshold: 0 }
-  ).observe(_headerEl);
-}
+// Shrink header on scroll
+const _stickyEl = document.getElementById('app-sticky');
+window.addEventListener('scroll', () => {
+  _stickyEl.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
