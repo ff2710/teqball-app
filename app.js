@@ -138,8 +138,7 @@ function doSwitchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(panel =>
     panel.classList.toggle('active', panel.id === `tab-${tabId}`)
   );
-  if (tabId === 'statistiken') renderStats();
-  if (tabId === 'historie')    renderHistorie();
+  if (tabId === 'statistiken') { renderStats(); if (!document.getElementById('historie-body').classList.contains('hidden')) renderHistorie(); }
   if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); }
   if (tabId === 'spieltag' && !scheduleActive && currentRounds.length === 0) showPathChooser();
   if (tabId === 'spieltag') updateSectionVisibility();
@@ -700,7 +699,7 @@ function populatePostRoundModal() {
     tbody.appendChild(tr);
   });
   document.getElementById('btn-end-session').textContent =
-    quickMode ? 'Schnelle Runde beenden' : 'Spieltag beenden';
+    quickMode ? 'Quick Match beenden' : 'Spieltag beenden';
 }
 
 function startNewRoundSameTeams() {
@@ -738,7 +737,7 @@ function endSession() {
     showConfirm(msg, performEndSession, 'Ja, abbrechen');
   } else if (saved > 0) {
     const msg = quickMode
-      ? 'Schnelle Runde beenden? Nichts wird gespeichert.'
+      ? 'Quick Match beenden? Nichts wird gespeichert.'
       : `Neue Runde abbrechen? Spieltag mit ${saved} Runde(n) wird gespeichert.`;
     showConfirm(msg, performEndSession, 'Ja, beenden');
   } else {
@@ -820,7 +819,7 @@ function updateHomeBanner() {
   banner.classList.toggle('hidden', !active);
   if (active) {
     document.getElementById('active-session-text').textContent = quickMode
-      ? `Schnelle Runde · ${currentRounds.length} Runde(n)`
+      ? `Quick Match · ${currentRounds.length} Runde(n)`
       : `Aktiver Spieltag · ${currentRounds.length} Runde(n) gespeichert`;
     startBtn.textContent = quickMode ? '▶ Spieltag starten' : '▶ Neuen Spieltag starten';
   } else {
@@ -832,11 +831,18 @@ function updateHomeBanner() {
 // QUICK MODE
 // ============================================================
 
+function backToPathChooser() {
+  showConfirm('Wirklich zurück? Alle Änderungen werden verworfen.', () => {
+    resetGameState();
+  }, 'Ja, zurück');
+}
+
 function showPathChooser() {
   document.getElementById('section-path-chooser').classList.remove('hidden');
   document.getElementById('section-players').classList.add('hidden');
   document.getElementById('section-teams').classList.add('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
+  document.getElementById('btn-back-to-chooser').classList.add('hidden');
 }
 
 function updateSectionVisibility() {
@@ -849,6 +855,7 @@ function updateSectionVisibility() {
 
 function startSessionPath() {
   document.getElementById('section-path-chooser').classList.add('hidden');
+  document.getElementById('btn-back-to-chooser').classList.remove('hidden');
   document.getElementById('section-players').classList.remove('hidden');
   document.getElementById('section-teams').classList.remove('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
@@ -858,6 +865,7 @@ function startSessionPath() {
 function startQuickPath() {
   quickMode = true;
   document.getElementById('section-path-chooser').classList.add('hidden');
+  document.getElementById('btn-back-to-chooser').classList.remove('hidden');
   document.getElementById('section-players').classList.remove('hidden');
   document.getElementById('section-teams').classList.remove('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
@@ -1287,6 +1295,35 @@ document.getElementById('standings-info-close').addEventListener('click', () =>
 );
 document.getElementById('standings-info-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) document.getElementById('standings-info-overlay').classList.add('hidden');
+});
+document.getElementById('teams-info-btn').addEventListener('click', () =>
+  document.getElementById('teams-info-overlay').classList.remove('hidden')
+);
+document.getElementById('teams-info-close').addEventListener('click', () =>
+  document.getElementById('teams-info-overlay').classList.add('hidden')
+);
+document.getElementById('teams-info-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('teams-info-overlay').classList.add('hidden');
+});
+document.getElementById('schedule-info-btn').addEventListener('click', () =>
+  document.getElementById('schedule-info-overlay').classList.remove('hidden')
+);
+document.getElementById('schedule-info-close').addEventListener('click', () =>
+  document.getElementById('schedule-info-overlay').classList.add('hidden')
+);
+document.getElementById('schedule-info-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('schedule-info-overlay').classList.add('hidden');
+});
+document.getElementById('btn-back-to-chooser').addEventListener('click', backToPathChooser);
+document.getElementById('btn-historie-toggle').addEventListener('click', () => {
+  const body = document.getElementById('historie-body');
+  const chevron = document.getElementById('historie-chevron');
+  const btn = document.getElementById('btn-historie-toggle');
+  const isOpen = !body.classList.contains('hidden');
+  body.classList.toggle('hidden', isOpen);
+  chevron.classList.toggle('open', !isOpen);
+  btn.setAttribute('aria-expanded', String(!isOpen));
+  if (!isOpen) renderHistorie();
 });
 
 // ============================================================

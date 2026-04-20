@@ -49,6 +49,16 @@ body {
 
 .app-header h1 {
   margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  height: 26px;
+  width: auto;
+  vertical-align: middle;
+  opacity: 0.92;
 }
 
 .btn-help {
@@ -1436,3 +1446,56 @@ input[type="number"]:focus {
 }
 .stats-table th { padding: 6px 4px; }
 .stats-table td { padding: 9px 4px; }
+
+/* ── Spieltag: back button ── */
+.btn-back-spieltag {
+  display: block;
+  background: none;
+  border: none;
+  padding: 6px 0 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+}
+.btn-back-spieltag:hover { color: #475569; }
+.btn-back-spieltag.hidden { display: none; }
+
+/* ── Statistiken: Historie accordion ── */
+.card-historie-accordion {
+  padding: 0;
+  overflow: hidden;
+}
+.historie-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 14px 18px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+  text-align: left;
+}
+.historie-toggle:hover { background: #f8fafc; }
+.historie-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.historie-chevron {
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.historie-chevron.open { transform: rotate(180deg); }
+.historie-body {
+  padding: 0 18px 16px;
+}
+.historie-body.hidden { display: none; }

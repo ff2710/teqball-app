@@ -5,13 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Teqball</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
   </head>
   <body>
     <div class="app">
 
       <header class="app-header">
         <div class="header-top">
-          <h1>Teqball</h1>
+          <h1>Teqball <img src="teqball_icon_weiß.png" alt="" class="header-icon" /></h1>
           <button id="help-btn" class="btn-help" aria-label="Hilfe">?</button>
         </div>
       </header>
@@ -28,10 +33,6 @@
           <svg class="tab-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><rect x="3" y="11" width="4" height="6" rx="1"/><rect x="8" y="7" width="4" height="10" rx="1"/><rect x="13" y="3" width="4" height="14" rx="1"/></svg>
           Statistiken
         </button>
-        <button class="tab-btn" data-tab="historie">
-          <svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><polyline points="10,6.5 10,10 12.5,12"/></svg>
-          Historie
-        </button>
       </nav>
 
       <!-- ── HELP MODAL ── -->
@@ -40,10 +41,11 @@
           <button id="help-close" class="help-close" aria-label="Schließen">×</button>
           <h2>Infos</h2>
           <ul>
-            <li><strong>Spieltag</strong> — Mehrere Runden hintereinander spielen. Nach jeder Runde gleiche oder neue Teams wählen. Beim Abschließen werden alle Runden automatisch gespeichert und in die Statistiken eingerechnet.</li>
-            <li><strong>Schnelle Runde</strong> — Voller Spielbetrieb, aber nichts wird gespeichert. Statistiken bleiben unberührt.</li>
-            <li><strong>Spielernamen</strong> — Bekannte Spieler immer über die Chips antippen, nie neu eintippen! Duplikate verfälschen die Langzeitstatistik.</li>
-            <li><strong>Gültige Ergebnisse:</strong> 11:x (x ≤ 9) oder Deuce — z.&thinsp;B. 12:10, 13:11 …</li>
+            <li><strong>Die App</strong> — Teqball-Spieltage organisieren: automatische Teamauslosung, Spielplan, Livetabelle und Langzeitstatistiken über alle Spieltage hinweg.</li>
+            <li><strong>Spieltag &amp; Runden</strong> — Ein Spieltag besteht aus einer oder mehreren Runden. Pro Runde spielt jedes Team einmal gegen jedes andere. Nach jeder Runde: gleiche oder neue Teams — beliebig oft wiederholen. Beim Beenden werden alle Runden gespeichert und in die Statistiken eingerechnet.</li>
+            <li><strong>Quick Match</strong> — Gleicher Spielbetrieb, aber ohne Speichern. Statistiken bleiben unberührt.</li>
+            <li><strong>Langzeitstatistiken</strong> — Die App erkennt Spieler anhand ihres Namens. Bekannte Spieler immer per Chip antippen — nie neu eintippen. Tippfehler oder Spitznamen erzeugen Duplikate und verfälschen die Statistiken.</li>
+            <li><strong>Gültige Ergebnisse</strong> — 11:x (x ≤ 9) oder Deuce, z.&thinsp;B. 12:10, 13:11 …</li>
           </ul>
         </div>
       </div>
@@ -111,8 +113,30 @@
       <div id="quick-info-overlay" class="help-overlay hidden">
         <div class="help-modal">
           <button id="quick-info-close" class="help-close" aria-label="Schließen">×</button>
-          <h2>⚡ Schnelle Runde</h2>
+          <h2>⚡ Quick Match</h2>
           <p class="info-ranking">Teams, Spielplan und Livetabelle funktionieren wie gewohnt — aber nichts wird gespeichert und die Langzeitstatistiken bleiben unberührt.</p>
+        </div>
+      </div>
+
+      <!-- ── TEAMS INFO OVERLAY ── -->
+      <div id="teams-info-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="teams-info-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>Teams generieren</h2>
+          <p class="info-ranking">Spieler werden zufällig in 2er-Teams aufgeteilt. Paarungen, die in diesem Spieltag bereits gespielt wurden, werden automatisch vermieden.</p>
+          <ul class="info-list">
+            <li><strong>Ungerade Spielerzahl</strong> Ein Spieler bekommt ein Einzel-Team — im Spielplan springt automatisch eine Aushilfe ein.</li>
+            <li><strong>Alle Kombinationen gespielt?</strong> Der Verlauf wird zurückgesetzt und alle Paarungen sind wieder möglich.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── SCHEDULE INFO OVERLAY ── -->
+      <div id="schedule-info-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="schedule-info-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>Spielplan</h2>
+          <p class="info-ranking">Jedes Team spielt genau einmal gegen jedes andere. Die Reihenfolge ist so optimiert, dass kein Team zweimal hintereinander spielen muss.</p>
         </div>
       </div>
 
@@ -171,6 +195,7 @@
       <!-- ── TAB: SPIELTAG ── -->
       <div id="tab-spieltag" class="tab-content">
         <div class="container">
+          <button id="btn-back-to-chooser" class="btn-back-spieltag hidden">← Zurück</button>
 
           <div id="round-indicator" class="round-indicator hidden">
             <div class="round-indicator-left">
@@ -188,7 +213,7 @@
             </div>
             <div class="path-divider"><span>oder</span></div>
             <div class="path-quick-row">
-              <button id="btn-start-quick-path" class="btn-full btn-quick">⚡ Schnelle Runde</button>
+              <button id="btn-start-quick-path" class="btn-full btn-quick">⚡ Quick Match</button>
               <button id="quick-info-btn" class="info-btn" aria-label="Info">?</button>
             </div>
           </section>
@@ -208,13 +233,19 @@
           </section>
 
           <section class="card hidden" id="section-teams">
-            <h2>Teams</h2>
+            <div class="section-header">
+              <h2>Teams</h2>
+              <button id="teams-info-btn" class="info-btn" aria-label="Info">?</button>
+            </div>
             <button id="generate-teams-btn" class="btn-full">Teams generieren</button>
             <div id="teams-container"></div>
           </section>
 
           <section class="card hidden" id="section-schedule">
-            <h2>Spielplan &amp; Ergebnisse <span id="round-label" class="round-label"></span></h2>
+            <div class="section-header">
+              <h2>Spielplan &amp; Ergebnisse <span id="round-label" class="round-label"></span></h2>
+              <button id="schedule-info-btn" class="info-btn" aria-label="Info">?</button>
+            </div>
             <button id="generate-schedule-btn" class="btn-full">Spielplan generieren</button>
             <div id="schedule-container"></div>
           </section>
@@ -269,16 +300,19 @@
               <p class="message">Noch keine Daten gespeichert.</p>
             </div>
           </section>
-        </div>
-      </div>
 
-      <!-- ── TAB: HISTORIE ── -->
-      <div id="tab-historie" class="tab-content">
-        <div class="container">
-          <section class="card">
-            <h2>Spieltage</h2>
-            <div id="historie-container">
-              <p class="message">Noch keine Spieltage gespeichert.</p>
+          <section class="card card-historie-accordion" id="section-historie-accordion">
+            <button id="btn-historie-toggle" class="historie-toggle" aria-expanded="false">
+              <div class="historie-toggle-left">
+                <svg style="width:16px;height:16px;color:#475569;flex-shrink:0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><polyline points="10,6.5 10,10 12.5,12"/></svg>
+                <span>Spieltage</span>
+              </div>
+              <svg id="historie-chevron" class="historie-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6,8 10,12 14,8"/></svg>
+            </button>
+            <div id="historie-body" class="historie-body hidden">
+              <div id="historie-container">
+                <p class="message">Noch keine Spieltage gespeichert.</p>
+              </div>
             </div>
           </section>
         </div>
