@@ -1695,3 +1695,53 @@ input[type="number"]:focus {
 }
 .spieltag-idle-msg  { font-size: 0.95rem; font-weight: 700; color: #94a3b8; }
 .spieltag-idle-hint { font-size: 0.8rem; color: #cbd5e1; }
+
+/* ── Animations ── */
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-enter {
+  animation: cardSlideIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes iconShimmer {
+  0%   { filter: brightness(1); }
+  30%  { filter: brightness(1.6) drop-shadow(0 0 6px rgba(255,255,255,0.7)); }
+  60%  { filter: brightness(1.3) drop-shadow(0 0 3px rgba(255,255,255,0.4)); }
+  100% { filter: brightness(1); }
+}
+.header-icon.icon-shimmer {
+  animation: iconShimmer 1.1s ease forwards;
+}
+
+@keyframes iconPulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.22); }
+  65%  { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+.header-icon.icon-pulse {
+  animation: iconPulse 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Mode indicator ── */
+.mode-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.mode-session {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.mode-quick {
+  background: #fef3c7;
+  color: #b45309;
+}

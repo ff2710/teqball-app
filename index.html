@@ -141,6 +141,16 @@
         </div>
       </div>
 
+      <!-- ── SESSION INFO OVERLAY ── -->
+      <div id="session-info-overlay" class="help-overlay hidden">
+        <div class="help-modal">
+          <button id="session-info-close" class="help-close" aria-label="Schließen">×</button>
+          <h2>▶ Spieltag</h2>
+          <p class="info-ranking">Spiele beliebig viele Runden. Nach jeder Runde kannst du mit gleichen oder neuen Teams weitermachen. Beim Beenden werden alle Runden automatisch gespeichert und in die Langzeitstatistik eingerechnet.</p>
+          <p class="info-warning">Nur echte Ergebnisse eintragen — Testspiele verfälschen die Statistiken.</p>
+        </div>
+      </div>
+
       <!-- ── QUICK INFO OVERLAY ── -->
       <div id="quick-info-overlay" class="help-overlay hidden">
         <div class="help-modal">
@@ -224,7 +234,10 @@
           </div>
 
           <section class="card card-start">
-            <button id="start-game-btn" class="btn-full btn-start" disabled style="opacity:0.4">▶ Spieltag starten</button>
+            <div class="path-session-row">
+              <button id="start-game-btn" class="btn-full btn-start" disabled style="opacity:0.4">▶ Spieltag starten</button>
+              <button id="session-info-btn" class="info-btn" aria-label="Info">?</button>
+            </div>
             <div class="path-quick-row">
               <button id="start-quick-btn" class="btn-full btn-quick">⚡ Quick Match</button>
               <button id="quick-info-btn" class="info-btn" aria-label="Info">?</button>
@@ -243,6 +256,9 @@
       <div id="tab-spieltag" class="tab-content">
         <div class="container">
           <button id="btn-back-to-chooser" class="btn-back-spieltag hidden">← Zurück</button>
+          <div id="mode-indicator" class="mode-indicator hidden">
+            <span id="mode-indicator-text"></span>
+          </div>
 
           <div id="round-indicator" class="round-indicator hidden">
             <div class="round-indicator-left">

@@ -91,6 +91,8 @@ function updateSyncStatus(status) {
     const count = db.sessions.length;
     text.textContent = `Verbunden · ${count} Spieltag${count !== 1 ? 'e' : ''}`;
     if (msg) msg.classList.add('hidden');
+    const icon = document.querySelector('.header-icon');
+    if (icon) { icon.classList.remove('icon-shimmer'); void icon.offsetWidth; icon.classList.add('icon-shimmer'); }
   } else if (status === 'error') {
     text.textContent = 'Ladefehler — Seite neu laden';
     if (msg) msg.classList.add('hidden');
@@ -135,7 +137,7 @@ function doSwitchTab(tabId) {
     panel.classList.toggle('active', panel.id === `tab-${tabId}`)
   );
   if (tabId === 'statistiken') { renderStats(); if (!document.getElementById('historie-body').classList.contains('hidden')) renderHistorie(); }
-  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); updateHomeExtras(); }
+  if (tabId === 'home')        { updateHomeBanner(); updateHomeState(); updateHomeExtras(); animateHomeCards(); }
   if (tabId === 'spieltag' && !scheduleActive && currentRounds.length === 0) showSpieltagIdle();
   if (tabId === 'spieltag') updateSectionVisibility();
 }
@@ -926,13 +928,10 @@ function updateHomeBanner() {
 // ============================================================
 
 function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 6)  return 'Noch so spät? 🌙';
-  if (h < 11) return 'Guten Morgen! ☀️';
-  if (h < 14) return 'Guten Mittag! 🍽️';
-  if (h < 18) return 'Guten Nachmittag! 🎯';
-  if (h < 22) return 'Guten Abend! ⚡';
-  return 'Noch so spät? 🌙';
+  const now = new Date();
+  const h   = String(now.getHours()).padStart(2, '0');
+  const m   = String(now.getMinutes()).padStart(2, '0');
+  return `Hi! Es ist ${h}:${m} Uhr — ab anne Platte!`;
 }
 
 function formatSessionDate(isoDate) {
@@ -986,6 +985,7 @@ function showSpieltagIdle() {
   document.getElementById('section-teams').classList.add('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
   document.getElementById('btn-back-to-chooser').classList.add('hidden');
+  setModeIndicator(null);
 }
 
 function updateSectionVisibility() {
@@ -1002,6 +1002,7 @@ function startSessionPath() {
   document.getElementById('section-players').classList.remove('hidden');
   document.getElementById('section-teams').classList.remove('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
+  setModeIndicator('session');
 }
 
 function startQuickPath() {
@@ -1012,14 +1013,51 @@ function startQuickPath() {
   document.getElementById('section-players').classList.remove('hidden');
   document.getElementById('section-teams').classList.remove('hidden');
   document.getElementById('section-schedule').classList.add('hidden');
+  setModeIndicator('quick');
 }
 
 // ============================================================
 // GAME START
 // ============================================================
 
+function pulseHeaderIcon() {
+  const icon = document.querySelector('.header-icon');
+  if (!icon) return;
+  icon.classList.remove('icon-pulse');
+  void icon.offsetWidth;
+  icon.classList.add('icon-pulse');
+}
+
+function animateHomeCards() {
+  const container = document.querySelector('#tab-home .container');
+  if (!container) return;
+  [...container.children]
+    .filter(el => !el.classList.contains('hidden'))
+    .forEach((el, i) => {
+      el.style.animationDelay = `${i * 0.07}s`;
+      el.classList.remove('card-enter');
+      void el.offsetWidth;
+      el.classList.add('card-enter');
+    });
+}
+
+function setModeIndicator(mode) {
+  const el   = document.getElementById('mode-indicator');
+  const text = document.getElementById('mode-indicator-text');
+  if (mode === 'session') {
+    text.textContent = '▶ Spieltag';
+    el.className = 'mode-indicator mode-session';
+  } else if (mode === 'quick') {
+    text.textContent = '⚡ Quick Match';
+    el.className = 'mode-indicator mode-quick';
+  } else {
+    el.className = 'mode-indicator hidden';
+  }
+}
+
 function startGame() {
   const doStart = () => {
+    pulseHeaderIcon();
     resetGameState();
     doSwitchTab('spieltag');
     startSessionPath();
@@ -1033,6 +1071,7 @@ function startGame() {
 
 function startQuickFromHome() {
   const doStart = () => {
+    pulseHeaderIcon();
     resetGameState();
     doSwitchTab('spieltag');
     startQuickPath();
@@ -1362,6 +1401,16 @@ document.getElementById('confirm-overlay').addEventListener('click', e => {
 // Home
 document.getElementById('start-game-btn').addEventListener('click', startGame);
 document.getElementById('start-quick-btn').addEventListener('click', startQuickFromHome);
+document.getElementById('session-info-btn').addEventListener('click', () =>
+  document.getElementById('session-info-overlay').classList.remove('hidden')
+);
+document.getElementById('session-info-close').addEventListener('click', () =>
+  document.getElementById('session-info-overlay').classList.add('hidden')
+);
+document.getElementById('session-info-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget)
+    document.getElementById('session-info-overlay').classList.add('hidden');
+});
 document.getElementById('quick-info-btn').addEventListener('click', () =>
   document.getElementById('quick-info-overlay').classList.remove('hidden')
 );
