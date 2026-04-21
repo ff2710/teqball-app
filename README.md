@@ -1,12 +1,12 @@
  > [!WARNING]
 > **Diese App läuft auf einer echten, aktiv genutzten Datenbank.**
-> Bitte keine Testdaten eingeben. Zum Ausprobieren: Repository klonen → [eigene Instanz aufsetzen](#-cloning--setup).
+> Bitte nicht verwenden, wenn du nicht zu meiner Spielgruppe gehörst und keine Testdaten eingeben. Zum selbst Ausprobieren: Repository klonen → [eigene Instanz aufsetzen](#-cloning--setup).
 
 ---
 
 # ⚽ Teqball App
 
-**Der digitale Spieltag-Assistent für eure Teqball-Runden.**
+Eine Web-App, um Teqball Spieltage zu organisieren.
 
 ![Status](https://img.shields.io/badge/Status-Beta-orange?style=flat-square)
 ![Tech](https://img.shields.io/badge/Stack-Vanilla%20JS%20%2F%20HTML%20%2F%20CSS-blue?style=flat-square)
@@ -19,8 +19,6 @@
 
 ## 🌟 Highlights
 
-Eine Web App, um die Teqball-Saison zu organisieren:
-
 - 📋 **Automatische Teamauslosung und Spielplangenerierung** — Nachdem Teilnehmer*innen hinzugefügt wurden, werden 2er-Teams gelost. Jedes Team spielt pro Runde einmal gegen jedes andere.
 - 📊 **Livetabelle** — Während die Ergebnisse eingetippt werden, aktualisiert sich die Tabelle in Echtzeit.
 - 🏆 **Langzeitstatistiken** — Individualstatistiken (automatisch per Cloud-Sync) bezüglich Siege, Gewinnquote, Punktedifferenz und die besten Duos zeigen über alle Spieltage hinweg, wer an der Platte dominiert.
@@ -28,23 +26,19 @@ Eine Web App, um die Teqball-Saison zu organisieren:
 
 ---
 
-## 🚀 Anleitung für die Spielgruppe
+## 🚀 Quick Start
 
-### Quick Start
-
-1. App öffnen und warten, bis der Sync-Punkt **grün** leuchtet
+1. App öffnen und kurz warten, bis der Sync-Punkt **grün** leuchtet
 2. **Spieltag starten** → Spieler per Chip antippen (oder neu erstellen) → **Teams generieren** → **Spielplan generieren**
 3. Ergebnisse eintragen — Livetabelle aktualisiert sich automatisch
 4. Nach jeder Runde wählen: gleiche Teams, neue Teams oder Spieltag beenden
 5. Beim Beenden werden alle Runden automatisch gespeichert und in die Statistiken eingerechnet
 
-> **Wichtig:** Bekannte Spieler immer über die **Chips** antippen — nicht neu eintippen, da sonst die Statistiken verfälscht werden.
+> **Wichtig:** Bereits erfasste (bekannte) Spieler immer über die **Chips** antippen — nicht neu eintippen, da sonst die Statistiken verfälscht werden.
 
 ---
 
-## ℹ️ Das Projekt
-
-### Funktionen im Detail
+## ℹ️ Funktionen im Detail
 
 **Spielverwaltung**
 - Beliebig viele Spieler pro Spieltag; Spieler aus der Datenbank erscheinen als antippbare Chips
