@@ -19,18 +19,12 @@
 
 ## 🌟 Highlights
 
-Wer kennt das: Ihr steht am Teqball-Tisch, niemand weiß mehr, wer gegen wen gespielt hat, die Teampaarungen werden immer unfairer und am Ende erinnert sich keiner mehr ans Endergebnis.
+Eine Web App, um die Teqball-Saison zu organisieren:
 
-Die Teqball App löst genau das:
-
-- 🎲 **Faire Auslosung** — Teams werden zufällig gelost. Paarungen, die in diesem Spieltag bereits gespielt wurden, werden automatisch vermieden.
-- 📋 **Automatischer Spielplan** — Jedes Team spielt genau einmal gegen jedes andere. Die Reihenfolge ist so optimiert, dass kein Team zweimal hintereinander spielen muss.
-- 📊 **Livetabelle** — Während die Ergebnisse eingetippt werden, aktualisiert sich die Tabelle in Echtzeit — inklusive Medaillen für die Top 3.
-- 🖥️ **Scoreboard-Modus** — Ein Tap öffnet eine Vollbild-Ansicht der Tabelle. Perfekt auf dem Tablet auf dem Tisch oder an einem gemeinsam sichtbaren Bildschirm.
-- 🏆 **Langzeitstatistiken** — Siege, Gewinnquote, Punktedifferenz und die besten Duos — über alle Spieltage hinweg.
-- ☁️ **Cloud-Sync** — Alle Ergebnisse werden automatisch synchronisiert. Jedes Gerät sieht denselben Stand, ohne manuelle Übertragung.
+- 📋 **Automatische Teamauslosung und Spielplangenerierung** — Nachdem Teilnehmer*innen hinzugefügt wurden, werden 2er-Teams gelost. Jedes Team spielt pro Runde einmal gegen jedes andere.
+- 📊 **Livetabelle** — Während die Ergebnisse eingetippt werden, aktualisiert sich die Tabelle in Echtzeit.
+- 🏆 **Langzeitstatistiken** — Individualstatistiken (automatisch per Cloud-Sync) bezüglich Siege, Gewinnquote, Punktedifferenz und die besten Duos zeigen über alle Spieltage hinweg, wer an der Platte dominiert.
 - ⚡ **Quick Match** — Voller Spielbetrieb ohne Speichern. Ideal für lockere Runden, bei denen nichts in die Statistik einfließen soll.
-- 🔁 **Session-Recovery** — Wird die App unbeabsichtigt geschlossen (Browser-Reload, iOS-Hintergrundkill), stellt sie den laufenden Spieltag automatisch wieder her.
 
 ---
 
@@ -39,20 +33,12 @@ Die Teqball App löst genau das:
 ### Quick Start
 
 1. App öffnen und warten, bis der Sync-Punkt **grün** leuchtet
-2. **Spieltag starten** → Spieler per Chip antippen → **Teams generieren** → **Spielplan generieren**
+2. **Spieltag starten** → Spieler per Chip antippen (oder neu erstellen) → **Teams generieren** → **Spielplan generieren**
 3. Ergebnisse eintragen — Livetabelle aktualisiert sich automatisch
 4. Nach jeder Runde wählen: gleiche Teams, neue Teams oder Spieltag beenden
 5. Beim Beenden werden alle Runden automatisch gespeichert und in die Statistiken eingerechnet
 
-> **Wichtig:** Bekannte Spieler immer über die **Chips** antippen — niemals neu eintippen.
-> Tippfehler oder Varianten eines Namens erzeugen Duplikate und verfälschen die Langzeitstatistik.
-
-### Modi im Überblick
-
-| Modus | Speichert Ergebnisse | Langzeitstatistik |
-|---|---|---|
-| ▶ Spieltag | ✅ Ja | ✅ Ja |
-| ⚡ Quick Match | ❌ Nein | ❌ Nein |
+> **Wichtig:** Bekannte Spieler immer über die **Chips** antippen — nicht neu eintippen, da sonst die Statistiken verfälscht werden.
 
 ---
 
@@ -74,7 +60,7 @@ Die Teqball App löst genau das:
 
 **Statistiken**
 - Spieler-Statistiken: Siege, Niederlagen, Spiele, Gewinnquote, Punktedifferenz
-- Beste Duos: Top-3-Partnerschaften nach Siegen oder Gewinnquote sortierbar
+- Beste Duos: Top-3-Duos nach Siegen oder Gewinnquote sortierbar
 - Spieltag-Historie: alle vergangenen Spieltage mit Rundendetails einsehbar
 - Letzter Spieltag als Vorschau auf dem Home-Bildschirm
 
@@ -88,14 +74,12 @@ Die Teqball App löst genau das:
 
 ## 🛠️ Tech Stack
 
-| Technologie | Zweck | Warum |
+| Technologie | Zweck | Erläuterung |
 |---|---|---|
 | **Vanilla JS** | App-Logik, State-Management | Kein Overhead durch Frameworks; volle Kontrolle, null Build-Step |
 | **HTML5 / CSS3** | Struktur & Styling | Native PWA-Features, eigene Design-Token ohne Präprozessor |
 | **JSONBin.io** | Cloud-Datenbank (REST) | Kostenlos, sofort einsatzbereit, kein Backend nötig |
 | **GitHub Pages** | Hosting | Kostenlos, automatisches Deployment per Push |
-
-Die bewusste Entscheidung gegen Frameworks (React, Vue, etc.) war keine Einschränkung, sondern ein Designprinzip: Die App soll wartbar und verständlich bleiben, ohne dass ein Build-System oder Node-Ökosystem mitgeschleppt werden muss.
 
 ---
 
@@ -146,28 +130,12 @@ Für dauerhaftes Hosting: Fork erstellen → GitHub Pages in den Repo-Einstellun
 Die App befindet sich aktuell in der **Testphase** mit einer festen Spielgruppe.
 
 **Aktuell im Fokus**
-- 🐛 Bugfixes und Stabilitätsverbesserungen auf Basis echtem Spielbetriebs
-- 🔍 Feinschliff bestehender Features (UX, Edge Cases, Performance)
+- Bugfixes und Stabilitätsverbesserungen auf Basis echtem Spielbetriebs
+- Feinschliff bestehender Features (UX, Edge Cases, Performance)
+- Designverfeinerungen und weitere UI-Verbesserungen
 
 **Mittelfristig angedacht**
-- Designverfeinerungen und weitere UI-Verbesserungen
-- Erweiterung der Statistiken (z. B. Head-to-Head-Übersicht)
-- Das Problem der geteilten, öffentlich zugänglichen Datenbank (JSONBin) steht noch aus — Lösungsansätze wie Auth-Layer oder eigener Backend-Dienst werden evaluiert
+- Das Problem der geteilten, öffentlich zugänglichen Datenbank (JSONBin) steht noch aus.
 
 **Nicht geplant**
-- Öffentlicher Launch oder Multi-Gruppen-Betrieb in absehbarer Zukunft
-
----
-
-## 🤝 Kontakt & Lizenz
-
-**Autor:** Fidel — Hobby-Entwickler, Teqball-Enthusiast
-
-Dieses Projekt ist ein persönliches Hobby-Projekt, entstanden aus einem echten Bedarf in einer echten Spielgruppe.
-
-**Bugs gefunden? Idee für ein neues Feature?**
-Issues und Feedback sind herzlich willkommen — am einfachsten per [GitHub Issue](https://github.com/ff2710/teqball-app/issues) oder direkt im Gespräch.
-
----
-
-MIT License — siehe [LICENSE](LICENSE) für Details.
+- Ein öffentlicher Launch oder Multi-Gruppen-Betrieb ist in absehbarer Zukunft nicht geplant.
