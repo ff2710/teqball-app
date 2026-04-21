@@ -142,12 +142,6 @@ Die App befindet sich aktuell in der **Testphase** mit einer festen Spielgruppe.
 
 ---
 
-## 🤝 Kontakt & Lizenz
-
-**Autor:** Fidel — Hobby-Entwickler, Teqball-Enthusiast
+**Autor:** Fidel
 
 Entwickelt mit Unterstützung von [Claude Code](https://claude.ai/code) (Anthropic).
-
-Bugs, Feedback oder Ideen gerne als [GitHub Issue](https://github.com/ff2710/teqball-app/issues).
-
-MIT License
