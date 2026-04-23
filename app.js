@@ -1057,7 +1057,8 @@ function renderLastSession() {
   const container = document.getElementById('last-session-container');
   if (!db.sessions.length) { section.classList.add('hidden'); return; }
   const last    = db.sessions[db.sessions.length - 1];
-  const players = computeSessionPlayerStats([last])
+  const lastRounds = last.rounds ?? [{ teams: last.teams, matches: last.matches }];
+  const players = computeSessionPlayerStats(lastRounds)
     .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate)
     .slice(0, 3);
   const MEDALS  = ['🥇', '🥈', '🥉'];
