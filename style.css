@@ -1817,6 +1817,22 @@ button:active:not(:disabled) {
   font-weight: 700;
 }
 
+/* ── Save Quick as Session button ── */
+.btn-save-as-session {
+  margin-top: 8px;
+  background: transparent;
+  color: #64748b;
+  border: 1.5px solid #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 10px 16px;
+}
+.btn-save-as-session:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
 /* ── Toast notification ── */
 .app-toast {
   position: fixed;

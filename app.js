@@ -108,6 +108,12 @@ async function loadDB() {
   } catch {
     updateSyncStatus('error');
     updateHomeState();
+    const restored = restoreSession();
+    if (restored) {
+      restoreSessionUI();
+      renderKnownPlayers();
+      showToast('Unterbrochene Session wiederhergestellt');
+    }
   }
 }
 
@@ -515,7 +521,7 @@ function renderSchedule(teams) {
     const sideA = document.createElement('div');
     sideA.className = 'match-side-a';
     sideA.appendChild(teamBadge(match.teamA, teams, helperA));
-    sideA.appendChild(createScoreInput(match.scoreA, val => { currentMatches[i].scoreA = val; updateStandings(); }));
+    sideA.appendChild(createScoreInput(match.scoreA, val => { currentMatches[i].scoreA = val; updateStandings(); persistSession(); }));
 
     const colon = document.createElement('span');
     colon.className   = 'score-colon';
@@ -523,7 +529,7 @@ function renderSchedule(teams) {
 
     const sideB = document.createElement('div');
     sideB.className = 'match-side-b';
-    sideB.appendChild(createScoreInput(match.scoreB, val => { currentMatches[i].scoreB = val; updateStandings(); }));
+    sideB.appendChild(createScoreInput(match.scoreB, val => { currentMatches[i].scoreB = val; updateStandings(); persistSession(); }));
     sideB.appendChild(teamBadge(match.teamB, teams, helperB));
 
     body.appendChild(sideA);
@@ -581,13 +587,74 @@ function computeStandings(teams, matches) {
     else if (sB > sA) { stats[match.teamB].wins++;   stats[match.teamA].losses++; }
   });
 
-  stats.sort((a, b) => {
-    if (b.wins !== a.wins) return b.wins - a.wins;
-    const h2h = getH2H(a.teamIndex, b.teamIndex, matches);
-    if (h2h !== 0) return -h2h;
-    return (b.pointsFor - b.pointsAgainst) - (a.pointsFor - a.pointsAgainst);
+  // Group by wins, then resolve ties within each group
+  const byWins = new Map();
+  stats.forEach(row => {
+    if (!byWins.has(row.wins)) byWins.set(row.wins, []);
+    byWins.get(row.wins).push(row);
   });
-  return stats;
+
+  const sorted = [];
+  [...byWins.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .forEach(([, group]) => sorted.push(...resolveStandingsGroup(group, matches)));
+
+  // Assign ranks — tied teams (same wins, inconclusive h2h, same diff) share same rank
+  if (sorted.length > 0) {
+    sorted[0].rank = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1], curr = sorted[i];
+      const sameDiff = (prev.pointsFor - prev.pointsAgainst) === (curr.pointsFor - curr.pointsAgainst);
+      if (prev.wins === curr.wins && getH2H(prev.teamIndex, curr.teamIndex, matches) === 0 && sameDiff) {
+        curr.rank = prev.rank;
+      } else {
+        curr.rank = i + 1;
+      }
+    }
+  }
+  return sorted;
+}
+
+function resolveStandingsGroup(group, matches) {
+  if (group.length <= 1) return group;
+
+  // Count h2h wins within the group
+  const indices = new Set(group.map(r => r.teamIndex));
+  const h2hWins = new Map(group.map(r => [r.teamIndex, 0]));
+  matches.forEach(m => {
+    if (!indices.has(m.teamA) || !indices.has(m.teamB)) return;
+    const sA = parseInt(m.scoreA), sB = parseInt(m.scoreB);
+    if (isNaN(sA) || isNaN(sB)) return;
+    if (sA > sB) h2hWins.set(m.teamA, h2hWins.get(m.teamA) + 1);
+    else if (sB > sA) h2hWins.set(m.teamB, h2hWins.get(m.teamB) + 1);
+  });
+
+  const vals = group.map(r => h2hWins.get(r.teamIndex));
+  const allSameH2H = vals.every(v => v === vals[0]);
+
+  if (!allSameH2H) {
+    // H2H is decisive — split into sub-groups by h2h wins, resolve each by diff
+    const subGroups = new Map();
+    group.forEach(r => {
+      const k = h2hWins.get(r.teamIndex);
+      if (!subGroups.has(k)) subGroups.set(k, []);
+      subGroups.get(k).push(r);
+    });
+    const result = [];
+    [...subGroups.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .forEach(([, sg]) => result.push(...resolveByPointsDiff(sg)));
+    return result;
+  }
+
+  // H2H inconclusive (circular or no games played) → sort by points difference
+  return resolveByPointsDiff(group);
+}
+
+function resolveByPointsDiff(group) {
+  return [...group].sort((a, b) =>
+    (b.pointsFor - b.pointsAgainst) - (a.pointsFor - a.pointsAgainst)
+  );
 }
 
 function getH2H(teamA, teamB, matches) {
@@ -608,23 +675,23 @@ function renderStandings(standings) {
   const table      = document.createElement('table');
   table.className  = 'standings-table';
   table.innerHTML  = `<thead><tr>
-    <th>#</th><th>Team</th><th>S</th><th>N</th><th>+</th><th>−</th><th>Diff</th>
+    <th>#</th><th>Team</th><th>Sp</th><th>S</th><th>N</th><th>Diff</th>
   </tr></thead>`;
   const tbody = document.createElement('tbody');
   standings.forEach((row, i) => {
     const color = TEAM_COLORS[row.teamIndex % TEAM_COLORS.length];
     const diff  = row.pointsFor - row.pointsAgainst;
+    const games = row.wins + row.losses;
     const tr    = document.createElement('tr');
     tr.innerHTML = `
-      <td class="rank">${RANK_MEDALS[i] ?? i + 1}</td>
+      <td class="rank">${RANK_MEDALS[(row.rank ?? i + 1) - 1] ?? row.rank ?? i + 1}</td>
       <td>
         <span class="table-team-badge" style="background:${color}">T${row.teamIndex + 1}</span>
         <span class="table-team-members">${row.team.join(' & ')}</span>
       </td>
+      <td class="stat-cell">${games}</td>
       <td class="stat-cell win">${row.wins}</td>
       <td class="stat-cell loss">${row.losses}</td>
-      <td class="stat-cell">${row.pointsFor}</td>
-      <td class="stat-cell">${row.pointsAgainst}</td>
       <td class="stat-cell ${diff >= 0 ? 'positive' : 'negative'}">${diff > 0 ? '+' : ''}${diff}</td>`;
     tbody.appendChild(tr);
   });
@@ -730,13 +797,15 @@ function populatePostRoundModal() {
   computeStandings(round.teams, round.matches).forEach((row, i) => {
     const color = TEAM_COLORS[row.teamIndex % TEAM_COLORS.length];
     const diff  = row.pointsFor - row.pointsAgainst;
+    const games = row.wins + row.losses;
     const tr    = document.createElement('tr');
     tr.innerHTML = `
-      <td class="rank">${i + 1}</td>
+      <td class="rank">${row.rank ?? i + 1}</td>
       <td>
         <span class="table-team-badge" style="background:${color}">T${row.teamIndex + 1}</span>
         <span class="table-team-members">${row.team.join(' & ')}</span>
       </td>
+      <td class="stat-cell">${games}</td>
       <td class="stat-cell win">${row.wins}</td>
       <td class="stat-cell loss">${row.losses}</td>
       <td class="stat-cell ${diff >= 0 ? 'positive' : 'negative'}">${diff > 0 ? '+' : ''}${diff}</td>`;
@@ -902,6 +971,7 @@ function showSessionSummary() {
   }).join('');
 
   renderSummaryStats(document.getElementById('summary-sort-select').value);
+  document.getElementById('summary-save-as-session-btn').classList.toggle('hidden', !_summaryWasQuick);
   document.getElementById('session-summary-overlay').classList.remove('hidden');
 }
 
@@ -1632,6 +1702,19 @@ document.getElementById('summary-dismiss-btn').addEventListener('click', () => {
   document.getElementById('session-summary-overlay').classList.add('hidden');
   finalizeSession();
 });
+document.getElementById('summary-save-as-session-btn').addEventListener('click', () => {
+  const n = _summaryRounds.length;
+  const label = `${n} Runde${n !== 1 ? 'n' : ''}`;
+  showConfirm(
+    `Diese Quick Match Session (${label}) als regulären Spieltag in die Statistik eintragen?`,
+    () => {
+      _summaryWasQuick = false;
+      document.getElementById('session-summary-overlay').classList.add('hidden');
+      finalizeSession();
+    },
+    'Ja, als Spieltag speichern'
+  );
+});
 document.getElementById('summary-sort-select').addEventListener('change', e =>
   renderSummaryStats(e.target.value)
 );
@@ -1678,7 +1761,7 @@ function renderScoreboardStandings() {
       <span class="scoreboard-rank">${MEDALS[i] ?? i + 1}</span>
       <span class="scoreboard-team-dot" style="background:${color}"></span>
       <span class="scoreboard-name">${row.team.join(' & ')}</span>
-      <span class="scoreboard-wins">${row.wins}S · ${row.losses}N</span>
+      <span class="scoreboard-wins">${row.wins + row.losses}Sp · ${row.wins}S · ${row.losses}N</span>
       <span class="scoreboard-diff ${diff >= 0 ? 'positive' : 'negative'}">${diff > 0 ? '+' : ''}${diff}</span>`;
     container.appendChild(div);
   });
