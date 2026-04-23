@@ -1118,6 +1118,7 @@ input[type="number"]:focus {
 
 /* ── Confirm modal ── */
 .confirm-modal { padding: 24px 22px 20px; }
+#confirm-overlay { z-index: 200; }
 
 .confirm-msg {
   font-size: 0.95rem;
@@ -1132,7 +1133,7 @@ input[type="number"]:focus {
   flex-wrap: wrap;
 }
 .confirm-actions button,
-.confirm-actions label { flex: 1; min-width: 130px; text-align: center; }
+.confirm-actions label { flex: 1; min-width: 130px; text-align: center; white-space: normal; }
 
 .btn-danger { background: #dc2626; }
 .btn-danger:hover { background: #b91c1c; }
